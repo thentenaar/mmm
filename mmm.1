@@ -1,0 +1,194 @@
+.TH mmm 1 "July 2015" "mmm" "User Commands"
+.SH NAME
+mmm \- minimal migration manager
+
+.SH SYNOPSIS
+.B mmm
+[\fB\-h\fR] [\fB\-f\fR \fIconfig_file\fR] \fIcommand\fR [\fIcommand_options\fR]
+
+.SH DESCRIPTION
+
+\fBmmm\fR is a simple database schema management tool using plain SQL
+files to represent changes in the schema, and one tracking table
+to track the current state.
+
+.SH OPTIONS
+.TP
+.BR \-h
+Show the help message.
+
+.TP
+.BR \-f " " \fIconfig_file\fR
+Configuration file to use.
+
+.SH COMMANDS
+.TP
+.BR init " " \fR[\fIconfig\fR]
+Create a new migration directory and config file unless \fIconfig\fR is
+specified, which creates a config file only.
+
+.TP
+.BR seed " " \fIseedfile\fB
+Seed the database with a .sql file.
+
+.TP
+.BR pending
+List all migrations yet unapplied.
+
+.TP
+.BR migrate
+Apply all pending migrations.
+
+.TP
+.BR rollback " " \fR[\fIrevision\fR]
+Unapply all migrations since \fIrevision\fR. If unspecified,
+\fIrevision\fR default to the current revision's previous
+revision.
+
+.TP
+.BR assimilate
+Track an existing database, assuming that all migrations have
+been applied,
+
+.SH EXAMPLES
+To quickly get up and running, do the following:
+
+.PP
+.nf
+1. Create your database
+2. Run \fBmmm init\fR to create the config and migration directory.
+3. Edit the generated config.
+4. If you have a seed file, run it with \fBmmm seed\fR.
+5. Otherwise, run \fBmmm assimilate\fR to create the state table.
+6. Add your migrations to the migration directory.
+7. Use \fBmmm migrate\fR to run them.
+.fi
+
+\fINOTE:\fR If you create your database by way of the \fBseed\fR command,
+no revision will be recorded, as there's no revision to record.
+\fBassimilate\fR does record the current local revision.
+
+.SH CONFIG FILE
+The configuration file is a typical ini-style configuration file,
+The general options (specified in the \fBmain\fR section) are:
+
+.TP
+.BR history
+Number of state transitions to keep in the tracking table.
+
+.TP
+.BR source
+Which source to use.
+
+.TP
+.BR driver
+Which database driver to use.
+
+.SH SOURCES
+Two sources are currently supported: \fBfile\fR and \fBgit\fR.
+
+The \fBfile\fR source looks at the files in the specified
+\fImigration_path\fR in order to determine the order that the
+files should be applied. This source assumes that all migrations
+begin with a numeric designation, for example: \fB1-init.sql\fR;
+and will be arranged in numerical order. This is the default
+source. Revisions correspond to the files' designations.
+
+The \fBgit\fR source uses a git repository for determining the order
+in which migrations should be applied. With this source, the files
+need not have a numeric designation, and they will be applied in
+the order in which they were committed to the repository. Revisions
+correspond to the actual SHA1 hash for the commit at which the current
+set of migrations was introduced.
+
+Sources each have their own section in the config file, and have the
+following parameters:
+
+.TP
+.BR migration_path
+Path (relative or absolute) to the migration files. (all sources.)
+
+.TP
+.BR repo_path
+Path to the git repository. (\fBgit\fR source only.)
+
+.SH DATABASE DRIVERS
+Three database drivers are available: \fBsqlite3\fR, \fBpgsql\fR and
+\fBmysql\fR, and are usable assuming the aforementioned dependencies
+are available. Thier configuration is specified in the \fBmain\fR
+config section.
+
+For \fBmysql\fR defaults will be read from the \fImysql\fR section of
+mysql's configuration for any unspecified parameters.
+
+The available options are:
+
+.TP
+.BR host
+Hostname or UNIX socket to connect to.
+
+.TP
+.BR port
+Port to connect to, or 0.
+
+.TP
+.BR username
+Username to authenticate with.
+
+.TP
+.BR password
+Password to authenticate with.
+
+.TP
+.BR db
+Database to connect to.
+
+For \fBsqlite3\fR, this should be the path to the SQLite3 database you
+want to use, and is the only mandatory option.
+
+.SH MIGRATION FILES
+The migration files are plain SQL files, split into two sections like
+so:
+.PP
+.nf
+.RS
+-- [\fBup\fR]
+CREATE TABLE test(id INTEGER NOT NULL);
+
+-- [\fBdown\fR]
+DROP TABLE test;
+.RE
+.fi
+.PP
+
+The \fBup\fR section contains the SQL queries to run when applying a
+migration. The \fBdown\fR section contains the SQL queries to run when
+rolling back a migration.
+
+They can be specified in either order.
+
+.SH CAVEATS
+\fBmmm\fR uses transactions to ensure that if an error occurs, the
+database is returned to a known state. However, not all RDMBS support
+transactional DDL (Data Definition Language) statements, and therefore
+\fBmmm\fR cannot guarantee that databases on these RDBMS systems will be
+in the desired state when rolling back the transaction.
+
+If an error occurs, and your database lacks transactional DDL support,
+mmm will emit an error message advising you of the situation. In these
+cases, you will need to manually verify that your schema is correct.
+
+In case of upgrading the schema, \fBmmm\fR will automatically roll back
+any applied migrations in the current batch when an error occurs if the
+RDBMS lacks transactional DDL support.
+
+.SH LIMITATIONS
+\fBmmm\fR can only handle files smaller than 64 KB by default. To raise
+this limit, increase \fBFILEBUFSIZ\fR in src/file.c.
+
+.SH BUGS
+None known.
+
+.SH AUTHOR
+Tim Hentenaar <tim@hentenaar.com>
+\" vi:set ft=groff:
