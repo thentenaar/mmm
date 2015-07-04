@@ -32,8 +32,7 @@ static const char *default_config_1 =
     "driver=sqlite3   ; Database driver.\n\n"
     ";\n"
     "; Database connection settings\n"
-    ";\n"
-    "host=\nport=\nusername=\npassword=\ndb=:memory:\n\n";
+    ";\nhost=\nport=\nusername=\npassword=\ndb=:memory:\n\n";
 
 static const char *default_config_2 =
     ";\n"
@@ -67,7 +66,8 @@ static int gen_config_file(const char *config_file, mode_t mode)
 
 	/* Clear the eXecute bits in mode, and create the file */
 	mode &= (mode_t)~(S_IXUSR | S_IXGRP | S_IXOTH);
-	fd = open(config_file, O_CREAT | O_EXCL | O_TRUNC | O_WRONLY, mode);
+	fd = open(config_file, O_CREAT | O_EXCL | O_TRUNC | O_WRONLY,
+	          mode);
 	if (fd < 0) {
 		ERROR_1("unable to create '%s'", config_file);
 		goto err;

@@ -154,9 +154,8 @@ static int parse_args(int argc, char *argv[])
 			goto err;
 
 		/* ... or --help */
-		if (argv[n_args][1] == '-' &&
-		    argv[n_args][2] == 'h')
-		    goto err;
+		if (argv[n_args][1] == '-' && argv[n_args][2] == 'h')
+			goto err;
 
 		/* Set the config file path */
 		if (argv[n_args][1] == 'f') {

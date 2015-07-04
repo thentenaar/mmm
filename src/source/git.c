@@ -106,8 +106,7 @@ static void initialize_diff_options(void)
 #endif
 	findopts.flags |= GIT_DIFF_FIND_IGNORE_WHITESPACE |
 	    GIT_DIFF_FIND_EXACT_MATCH_ONLY;
-}
-/* }}} */
+} /* }}} */
 
 /* {{{ static int is_path_sql(const char *path) */
 /**
@@ -146,8 +145,8 @@ static int is_duplicate(const char *path)
 	int retval = 0;
 
 	plen = strlen(path);
-	for (ml=mlist_head; ml; ml=ml->next) {
-		for (i=0; i<ml->size; i++) {
+	for (ml = mlist_head; ml; ml = ml->next) {
+		for (i = 0; i < ml->size; i++) {
 			if (plen != strlen(ml->migrations[i]))
 				continue;
 
@@ -180,8 +179,8 @@ static int modify_mlist(const char *old_path, const char *new_path)
 	old_len = strlen(old_path);
 	if (!old_len) goto ret;
 
-	for (ml=mlist_head; ml; ml=ml->next) {
-		for (i=0;i<ml->size;i++) {
+	for (ml = mlist_head; ml; ml = ml->next) {
+		for (i = 0; i < ml->size; i++) {
 			if (!ml->migrations[i])
 				continue;
 			if (strlen(ml->migrations[i]) != old_len)
@@ -199,7 +198,8 @@ static int modify_mlist(const char *old_path, const char *new_path)
 		if (!new_path) continue;
 
 		/* Apply a rename */
-		errno = 0; new_len = strlen(new_path);
+		new_len = strlen(new_path);
+		errno = 0;
 		ml->migrations[i] = malloc(new_len + 1);
 		if (!ml->migrations[i]) goto err;
 		memcpy(ml->migrations[i], new_path, new_len + 1);
@@ -294,7 +294,7 @@ static size_t process_diff(git_diff *diff)
 		mlist_tail = ml;
 	}
 
-	for (i=0; i<git_diff_num_deltas(diff); i++) {
+	for (i = 0; i < git_diff_num_deltas(diff); i++) {
 		delta = git_diff_get_delta(diff, i);
 		if (!delta) continue;
 
@@ -355,7 +355,7 @@ err:
  */
 static char **flatten_mlist(size_t maxlen, size_t *size)
 {
-	size_t i,j,k;
+	size_t i, j, k;
 	struct mlist *ml;
 	char **migrations = NULL, **tmp;
 
@@ -367,8 +367,8 @@ static char **flatten_mlist(size_t maxlen, size_t *size)
 	if (!migrations) goto malloc_err;
 
 	/* Copy the migrations, sorting each batch. */
-	for (j=0, k=0, ml=mlist_head; ml; ml=ml->next, k=j) {
-		for (i=0; i<ml->size; i++) {
+	for (j = 0, k = 0, ml = mlist_head; ml; ml = ml->next, k = j) {
+		for (i = 0; i < ml->size; i++) {
 			if (!is_path_sql(ml->migrations[i]))
 				continue;
 			migrations[j++] = ml->migrations[i];
@@ -395,7 +395,7 @@ static char **flatten_mlist(size_t maxlen, size_t *size)
 
 ret:
 	if (mlist_head) {
-		for (ml=mlist_head; ml; ml=mlist_tail) {
+		for (ml = mlist_head; ml; ml = mlist_tail) {
 			mlist_tail = ml->next;
 			free(ml->migrations);
 			free(ml);
@@ -408,16 +408,14 @@ ret:
 
 malloc_err:
 	if (errno == ENOMEM) {
-		ERROR_1("failed to allocate memory: %s",
-		        strerror(errno));
+		ERROR_1("failed to allocate memory: %s", strerror(errno));
 	}
 
-	*size = 0;
 	if (migrations) {
-		for (i=0;migrations[i];i++) free(migrations[i]);
+		while (*size) free(migrations[--*size]);
 		free(migrations);
 		migrations = NULL;
-	}
+	} else *size = 0;
 
 	goto ret;
 }
@@ -457,7 +455,7 @@ static char **git_find_migrations(const char *cur_rev,
 	i = strlen(config.migration_path);
 	if (config.migration_path[i - 1] != '/') {
 		config.migration_path[i++] = '/';
-		config.migration_path[i]   = '\0';
+		config.migration_path[i] = '\0';
 	}
 
 	if (git_repository_open(&repo, config.repo_path) != GIT_OK)
@@ -496,7 +494,7 @@ static char **git_find_migrations(const char *cur_rev,
 		goto ret;
 
 	git_revwalk_sorting(walk, GIT_SORT_TOPOLOGICAL |
-	                          GIT_SORT_REVERSE);
+	                    GIT_SORT_REVERSE);
 	i = 0;
 
 	while (!git_revwalk_next(&oid, walk)) {

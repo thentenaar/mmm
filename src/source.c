@@ -109,8 +109,10 @@ char **source_find_migrations(const char *source, const char *cur_rev,
 	i = find_backend(source, strlen(source));
 	if (i == SIZE_MAX) goto ret;
 
-	if (sources[i]->find_migrations)
-		return sources[i]->find_migrations(cur_rev, prev_rev, size);
+	if (sources[i]->find_migrations) {
+		return sources[i]->find_migrations(cur_rev, prev_rev,
+		                                   size);
+	}
 
 ret:
 	if (size) *size = 0;

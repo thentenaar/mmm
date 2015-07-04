@@ -191,7 +191,7 @@ static void update_local_head(const char *head)
 	while (head[i] && head[i] >= '0' && head[i] <= '9')
 		i++;
 
-	i = (i >= sizeof(local_head)) ? sizeof(local_head) - 1: i;
+	i = (i >= sizeof(local_head)) ? sizeof(local_head) - 1 : i;
 	if (i) {
 		memcpy(local_head, head, i);
 		local_head[i] = '\0';

@@ -109,8 +109,7 @@ config_callback_t db_get_config_cb(const char *driver, size_t len)
  */
 int db_connect(const char *driver, const char *host,
                const unsigned short port,
-               const char *username, const char *password,
-                const char *db)
+               const char *username, const char *password, const char *db)
 {
 	int retval = 1;
 	size_t i;
@@ -173,8 +172,8 @@ err:
  */
 int db_has_transactional_ddl(void)
 {
-	return session.dbh &&
-	       drivers[session.type]->has_transactional_ddl;
+	return (session.dbh &&
+	        drivers[session.type]->has_transactional_ddl);
 }
 
 /**

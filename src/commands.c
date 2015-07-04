@@ -31,8 +31,7 @@ static int head(const char *source, const char *current,
 	size_t size = 0;
 
 	/* Get the migrations */
-	migrations = source_find_migrations(source, current, NULL,
-	                                    &size);
+	migrations = source_find_migrations(source, current, NULL, &size);
 
 	/* Get local HEAD and set the state */
 	local_head = source_get_local_head(source);
@@ -94,8 +93,7 @@ static int pending(const char *source, const char *current,
 	size_t size = 0, i;
 
 	/* Get the migrations */
-	migrations = source_find_migrations(source, current, NULL,
-	                                    &size);
+	migrations = source_find_migrations(source, current, NULL, &size);
 	PRINT_1("%lu migrations pending:\n", size);
 
 	/* ... and print them out. */
@@ -124,8 +122,7 @@ static int migrate(const char *source, const char *current,
 	unsigned int i;
 
 	/* Get the migrations */
-	migrations = source_find_migrations(source, current, NULL,
-	                                    &size);
+	migrations = source_find_migrations(source, current, NULL, &size);
 	if (!migrations) {
 		ERROR("no migrations found");
 		retval = EXIT_SUCCESS;
@@ -210,7 +207,6 @@ rollback:
  */
 static int rollback(const char *source, const char *current,
                     int argc, char *argv[])
-
 {
 	int retval = EXIT_FAILURE;
 	char **migrations = NULL;
@@ -301,8 +297,7 @@ rollback:
  */
 static int assimilate(const char *source,
                       const char *UNUSED(current),
-                      int UNUSED(argc),
-                      char *UNUSED(argv[]))
+                      int UNUSED(argc), char *UNUSED(argv[]))
 {
 	char **migrations;
 	size_t size = 0;

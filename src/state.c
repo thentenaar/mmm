@@ -30,27 +30,25 @@
  *
  */
 static const char *create_state_table =
-	"CREATE TABLE mmm_state(\n"
-	"  tstamp    INTEGER      NOT NULL PRIMARY KEY,\n"
-	"  version   INTEGER      NOT NULL,\n"
-	"  revision  VARCHAR(50)  NOT NULL,\n"
-	"  previous  VARCHAR(50)  NOT NULL\n" ");";
+    "CREATE TABLE mmm_state(\n"
+    "  tstamp    INTEGER      NOT NULL PRIMARY KEY,\n"
+    "  version   INTEGER      NOT NULL,\n"
+    "  revision  VARCHAR(50)  NOT NULL,\n"
+    "  previous  VARCHAR(50)  NOT NULL\n" ");";
 
 /**
  * SQL-92 compliant queries to manage the current state.
  */
 static const char *get_current_state =
-	"SELECT * FROM mmm_state ORDER BY tstamp DESC;";
+    "SELECT * FROM mmm_state ORDER BY tstamp DESC;";
 
 static const char *insert_state =
-	"INSERT INTO mmm_state(tstamp, version, revision, previous) "
-	"VALUES";
+    "INSERT INTO mmm_state(tstamp, version, revision, previous) "
+    "VALUES";
 
-static const char *delete_state =
-	"DELETE FROM mmm_state WHERE tstamp <";
+static const char *delete_state = "DELETE FROM mmm_state WHERE tstamp <";
 
-static const char *drop_state =
-	"DROP TABLE mmm_state;";
+static const char *drop_state = "DROP TABLE mmm_state;";
 
 /**
  * Structure representing a state record.
@@ -247,7 +245,7 @@ int state_add_revision(const char *rev)
 	if (++states_loaded > states_allocated)
 		states_loaded = states_allocated;
 	memmove(&states[1], &states[0],
-		    states_loaded * sizeof(struct state));
+	        states_loaded * sizeof(struct state));
 
 	/* Setup the new state */
 	memmove(states[0].revision, rev, i + 1);

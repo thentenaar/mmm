@@ -290,7 +290,8 @@ int parse_config(const char *config, size_t len)
 
 		/* If we have a token, handle it. */
 		if (state.token) {
-			retval = handle_token(config + pos, len - pos, &pos);
+			retval = handle_token(config + pos, len - pos,
+			                      &pos);
 			if (retval) goto invalid_identifier;
 		}
 

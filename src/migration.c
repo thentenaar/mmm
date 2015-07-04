@@ -14,10 +14,10 @@
 #include "migration.h"
 
 static const char *down = "-- [down]";
-static const char *up   = "-- [up]";
+static const char *up = "-- [up]";
 
 static const unsigned int down_len = 9;
-static const unsigned int up_len   = 7;
+static const unsigned int up_len = 7;
 
 /**
  * Trim leading whitespace
@@ -112,4 +112,3 @@ int migration_downgrade(const char *path)
 {
 	return run_migration(path, 0);
 }
-
