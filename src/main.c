@@ -52,10 +52,13 @@ static const char *usage_1 =
 static const char *usage_2 =
     "     seed <seed file>    Seed the database with a .sql file.\n"
     "     pending             List all migrations yet unapplied.\n"
+    "     head                Get the latest local revision.\n"
     "     migrate             Apply all pending migrations.\n"
     "     rollback [revision] Unapply all migrations since <revision>\n"
     "                         which defaults to the current previous\n"
-    "                         revision.\n"
+    "                         revision.\n";
+
+static const char *usage_3 =
     "     assimilate          Track an existing database, assuming\n"
     "                         that all migrations have been applied.\n";
 
@@ -276,6 +279,7 @@ static void usage(const char *progname)
 {
 	printf(usage_1, progname, default_config);
 	puts(usage_2);
+	puts(usage_3);
 }
 
 /* {{{ GCC >= 4.6: restore -Wformat-security */

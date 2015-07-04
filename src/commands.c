@@ -21,6 +21,34 @@
 #include "commands.h"
 
 /**
+ * Get the local HEAD revision.
+ */
+static int head(const char *source, const char *current,
+                int UNUSED(argc), char *UNUSED(argv[]))
+{
+	const char *local_head;
+	char **migrations;
+	size_t size = 0;
+
+	/* Get the migrations */
+	migrations = source_find_migrations(source, current, NULL,
+	                                    &size);
+
+	/* Get local HEAD and set the state */
+	local_head = source_get_local_head(source);
+	if (local_head && *local_head) {
+		PRINT_1("%s\n", local_head);
+	}
+
+	if (migrations) {
+		while (size) free(migrations[--size]);
+		free(migrations);
+	}
+
+	return EXIT_SUCCESS;
+}
+
+/**
  * Seed the database from a .sql file.
  *
  * This command has one argument: The path to the file to seed the
@@ -306,7 +334,7 @@ ret:
 	return retval;
 }
 
-#define N_COMMANDS 5
+#define N_COMMANDS 6
 #define MIN_COMMAND_LEN 4
 #define MAX_COMMAND_LEN 10
 
@@ -318,6 +346,7 @@ static const struct command {
 	int (*proc)(const char *source, const char *current,
 	            int argc, char *argv[]);
 } commands[N_COMMANDS] = {
+	{ "head", 4, 0, 1, head },
 	{ "seed", 4, 1, 0, seed }, /* argv: <seed_file> */
 	{ "pending", 7, 0, 1, pending },
 	{ "migrate", 7, 0, 1, migrate },

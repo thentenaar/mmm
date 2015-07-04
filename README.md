@@ -20,6 +20,7 @@ Usage: ./mmm [-h] [-f config_file] command [command options...]
                          file unless 'config' is specified, which
                          creates a config file only.
      seed <seed file>    Seed the database with a .sql file.
+     head                Get the latest local revision.
      pending             List all migrations yet unapplied.
      migrate             Apply all pending migrations.
      rollback [revision] Unapply all migrations since <revision>

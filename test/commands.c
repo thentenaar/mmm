@@ -247,6 +247,47 @@ static int migration_downgrade(const char *UNUSED(path))
 static char *query = "query";
 
 /**
+ * Test that head prints nothing if no local_head is
+ * given by the source.
+ */
+static void head_no_local_head(void)
+{
+	char *argv[1] = { "head" };
+
+	reset_stubs();
+	*errbuf = '\0';
+	state_get_current_returns = "xxx";
+	source_get_local_head_returns = NULL;
+	source_find_migrations_returns = NULL;
+	source_find_migrations_returns_size = 0;
+
+	CU_ASSERT_EQUAL(EXIT_SUCCESS, run_command("head", 1, argv));
+	CU_ASSERT_STRING_EQUAL(errbuf, "\0");
+}
+
+/**
+ * Test that head works.
+ */
+static void test_head(void)
+{
+
+	char **migs;
+	char *argv[1] = { "head" };
+
+	reset_stubs();
+	*errbuf = '\0';
+	migs = malloc(sizeof(char *));
+	migs[0] = strdup("test.sql");
+	state_get_current_returns = "xxx";
+	source_find_migrations_returns = migs;
+	source_find_migrations_returns_size = 1;
+	source_get_local_head_returns = "yyy";
+
+	CU_ASSERT_EQUAL(EXIT_SUCCESS, run_command("head", 1, argv));
+	CU_ASSERT_STRING_EQUAL(errbuf, "yyy\n");
+}
+
+/**
  * Test that run_command() behaves correctly when argc is 0.
  */
 static void run_command_argc_0(void)
@@ -1136,6 +1177,14 @@ static CU_TestInfo commands_tests[] = {
 	{
 		"run_command - works",
 		test_run_command
+	},
+	{
+		"head command - no local_head",
+		head_no_local_head
+	},
+	{
+		"head command - works",
+		test_head
 	},
 	{
 		"seed command - can't map file",
