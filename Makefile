@@ -112,7 +112,7 @@ install: mmm
 
 uninstall:
 	@echo " UNINSTALL mmm"
-	@$(RM) -f $(PREFIX)/mmm
+	@$(RM) -f $(PREFIX)/bin/mmm
 	@echo " UNINSTALL mmm.1"
 	@$(RM) -f $(PREFIX)/share/man/man1/mmm.1*
 
