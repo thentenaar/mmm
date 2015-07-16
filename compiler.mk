@@ -75,10 +75,10 @@ endif
 ifneq (,$(IS_GCC))
   # These should work on gcc >= 2.95. '-W' has been called '-Wextra'
   # since gcc 3.4.4, however '-W' is still valid.
-  XCFLAGS += -pedantic -Werror -Wall -W -pedantic -Wconversion
-  XCFLAGS += -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations
-  XCFLAGS += -Wnested-externs -Wshadow -Wcast-align -Wwrite-strings
-  XCFLAGS += -Wbad-function-cast -Wredundant-decls -Wcast-qual -Wcomment
+  XCFLAGS += -pedantic -Werror -Wall -W -Wconversion -Wstrict-prototypes
+  XCFLAGS += -Wmissing-prototypes -Wmissing-declarations -Wnested-externs
+  XCFLAGS += -Wshadow -Wcast-align -Wwrite-strings -Wcomment -Wcast-qual
+  XCFLAGS += -Wbad-function-cast -Wredundant-decls
 
   # -Wformat-security was introduced in gcc 3.0.4
   ifeq ($(shell test $(GCC_MAJOR) -ge 4; echo $$?), 0)
