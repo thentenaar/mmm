@@ -65,20 +65,36 @@ Optional:
   - [cunit](http://cunit.sourceforge.net) for building the tests.
   - [gcovr](http://gcovr.com) for generating coverage reports.
 
+Dependencies will be selected by default if they're available in
+the prefix specified to ``configure``. You can specify the paths
+for these dependencies yourself by passing the following options:
+
+```
+ --with-sqlite3=PATH     enable support for SQLite3
+ --with-pgsql=PATH       enable support for PostgreSQL
+ --with-mysql=PATH       enable support for MariaDB / MySQL
+ --with-libgit2=PATH     enable git support via libgit2
+ --with-cunit=PATH       enable support for CUnit
+```
+
+Passing a ``--without-`` argument will prevent ``mmm`` from being
+built with that particular dependency.
+
 Installation
 ------------
 
-``mmm`` can be installed with the typical ``make`` followed by
-``make install``. Alternatively, you can also run the automated
-tests, and generate a coverage report.
+To install ``mmm``, simply check-out the sources, and do a
+standard ``./configure && make && make install``.
 
-- To run the tests: ``make check``
-- To generate a coverage report: ``make coverage``
+Alternatively, you can also run the automated tests, and generate
+a coverage report.
+
+- To run the tests: ``make test``
+- To generate a coverage report: ``make clean coverage``
 - To uninstall: ``make uninstall``
 
-*NOTE*: The pkgconfig files for Debian-based distros seem to be
-either non-existent or broken for CUnit. If the tests fail to build,
-try setting CUNIT_LIBS, like so:  ``CUNIT_LIBS=-lcunit make ...``.
+If you have issues running ``./configure``, run ``./autogen.sh`` and try
+again.
 
 Configuration File
 ------------------

@@ -242,6 +242,23 @@ static int migration_downgrade(const char *UNUSED(path))
 	return migration_downgrade_returns;
 }
 
+
+/**
+ * A simple strdup(3) clone.
+ *
+ * Normally, I'm not a big fan of cloning a function
+ * which is specified in SUSv2, however on OSX,
+ * with our chosen CFLAGS, strdup isn't exposed.
+ */
+static char *my_strdup(const char *s)
+{
+	char *d = malloc(strlen(s)+1);
+	if (!d) return NULL;
+	strcpy(d, s);
+	d[strlen(s)] = '\0';
+	return d;
+}
+
 /* }}} */
 
 static char *query = "query";
@@ -277,7 +294,7 @@ static void test_head(void)
 	reset_stubs();
 	*errbuf = '\0';
 	migs = malloc(sizeof(char *));
-	migs[0] = strdup("test.sql");
+	migs[0] = my_strdup("test.sql");
 	state_get_current_returns = "xxx";
 	source_find_migrations_returns = migs;
 	source_find_migrations_returns_size = 1;
@@ -494,7 +511,7 @@ static void test_pending(void)
 	reset_stubs();
 	*errbuf = '\0';
 	migs = malloc(sizeof(char *));
-	migs[0] = strdup("test.sql");
+	migs[0] = my_strdup("test.sql");
 	state_get_current_returns = "xxx";
 	source_find_migrations_returns = migs;
 	source_find_migrations_returns_size = 1;
@@ -532,7 +549,7 @@ static void migrate_no_migration_path(void)
 	reset_stubs();
 	*errbuf = '\0';
 	migs = malloc(sizeof(char *));
-	migs[0] = strdup("test.sql");
+	migs[0] = my_strdup("test.sql");
 	state_get_current_returns = "xxx";
 	source_find_migrations_returns = migs;
 	source_find_migrations_returns_size = 1;
@@ -556,7 +573,7 @@ static void migrate_begin_fails(void)
 	reset_stubs();
 	*errbuf = '\0';
 	migs = malloc(sizeof(char *));
-	migs[0] = strdup("test.sql");
+	migs[0] = my_strdup("test.sql");
 	state_get_current_returns = "xxx";
 	source_find_migrations_returns = migs;
 	source_find_migrations_returns_size = 1;
@@ -582,7 +599,7 @@ static void migrate_upgrade_fails(void)
 	reset_stubs();
 	*errbuf = '\0';
 	migs = malloc(sizeof(char *));
-	migs[0] = strdup("test.sql");
+	migs[0] = my_strdup("test.sql");
 	state_get_current_returns = "xxx";
 	source_find_migrations_returns = migs;
 	source_find_migrations_returns_size = 1;
@@ -608,7 +625,7 @@ static void migrate_rollback_fails(void)
 	reset_stubs();
 	*errbuf = '\0';
 	migs = malloc(sizeof(char *));
-	migs[0] = strdup("test.sql");
+	migs[0] = my_strdup("test.sql");
 	state_get_current_returns = "xxx";
 	source_find_migrations_returns = migs;
 	source_find_migrations_returns_size = 1;
@@ -637,7 +654,7 @@ static void migrate_rollback_no_transactional_ddl(void)
 	reset_stubs();
 	*errbuf = '\0';
 	migs = malloc(sizeof(char *));
-	migs[0] = strdup("test.sql");
+	migs[0] = my_strdup("test.sql");
 	state_get_current_returns = "xxx";
 	source_find_migrations_returns = migs;
 	source_find_migrations_returns_size = 1;
@@ -666,9 +683,9 @@ static void migrate_rollback_no_transactional_ddl_2(void)
 	reset_stubs();
 	*errbuf = '\0';
 	migs = malloc(sizeof(char *) * 3);
-	migs[0] = strdup("test.sql");
-	migs[1] = strdup("test2.sql");
-	migs[2] = strdup("test3.sql");
+	migs[0] = my_strdup("test.sql");
+	migs[1] = my_strdup("test2.sql");
+	migs[2] = my_strdup("test3.sql");
 	state_get_current_returns = "xxx";
 	source_find_migrations_returns = migs;
 	source_find_migrations_returns_size = 3;
@@ -696,7 +713,7 @@ static void migrate_commit_fails(void)
 	reset_stubs();
 	*errbuf = '\0';
 	migs = malloc(sizeof(char *));
-	migs[0] = strdup("test.sql");
+	migs[0] = my_strdup("test.sql");
 	state_get_current_returns = "xxx";
 	source_find_migrations_returns = migs;
 	source_find_migrations_returns_size = 1;
@@ -724,7 +741,7 @@ static void migrate_add_revision_fails(void)
 	reset_stubs();
 	*errbuf = '\0';
 	migs = malloc(sizeof(char *));
-	migs[0] = strdup("test.sql");
+	migs[0] = my_strdup("test.sql");
 	state_get_current_returns = "xxx";
 	source_find_migrations_returns = migs;
 	source_find_migrations_returns_size = 1;
@@ -753,7 +770,7 @@ static void migrate_cleanup_table_fails(void)
 	reset_stubs();
 	*errbuf = '\0';
 	migs = malloc(sizeof(char *));
-	migs[0] = strdup("test.sql");
+	migs[0] = my_strdup("test.sql");
 	state_get_current_returns = "xxx";
 	source_find_migrations_returns = migs;
 	source_find_migrations_returns_size = 1;
@@ -780,7 +797,7 @@ static void test_migrate(void)
 
 	reset_stubs();
 	migs = malloc(sizeof(char *));
-	migs[0] = strdup("test.sql");
+	migs[0] = my_strdup("test.sql");
 	state_get_current_returns = "xxx";
 	source_find_migrations_returns = migs;
 	source_find_migrations_returns_size = 1;
@@ -861,7 +878,7 @@ static void rollback_no_migration_path(void)
 	reset_stubs();
 	*errbuf = '\0';
 	migs = malloc(sizeof(char *));
-	migs[0] = strdup("test.sql");
+	migs[0] = my_strdup("test.sql");
 	state_get_current_returns = "yyy";
 	source_find_migrations_returns = migs;
 	source_find_migrations_returns_size = 1;
@@ -885,7 +902,7 @@ static void rollback_begin_fails(void)
 	reset_stubs();
 	*errbuf = '\0';
 	migs = malloc(sizeof(char *));
-	migs[0] = strdup("test.sql");
+	migs[0] = my_strdup("test.sql");
 	state_get_current_returns = "yyy";
 	source_find_migrations_returns = migs;
 	source_find_migrations_returns_size = 1;
@@ -910,7 +927,7 @@ static void rollback_downgrade_fails(void)
 	reset_stubs();
 	*errbuf = '\0';
 	migs = malloc(sizeof(char *));
-	migs[0] = strdup("test.sql");
+	migs[0] = my_strdup("test.sql");
 	state_get_current_returns = "yyy";
 	source_find_migrations_returns = migs;
 	source_find_migrations_returns_size = 1;
@@ -936,8 +953,8 @@ static void rollback_downgrade_no_transactional_ddl(void)
 	reset_stubs();
 	*errbuf = '\0';
 	migs = malloc(sizeof(char *) * 2);
-	migs[0] = strdup("test.sql");
-	migs[1] = strdup("test2.sql");
+	migs[0] = my_strdup("test.sql");
+	migs[1] = my_strdup("test2.sql");
 	state_get_current_returns = "yyy";
 	source_find_migrations_returns = migs;
 	source_find_migrations_returns_size = 2;
@@ -963,7 +980,7 @@ static void rollback_rollback_fails(void)
 	reset_stubs();
 	*errbuf = '\0';
 	migs = malloc(sizeof(char *));
-	migs[0] = strdup("test.sql");
+	migs[0] = my_strdup("test.sql");
 	state_get_current_returns = "yyy";
 	source_find_migrations_returns = migs;
 	source_find_migrations_returns_size = 1;
@@ -990,7 +1007,7 @@ static void rollback_commit_fails(void)
 	reset_stubs();
 	*errbuf = '\0';
 	migs = malloc(sizeof(char *));
-	migs[0] = strdup("test.sql");
+	migs[0] = my_strdup("test.sql");
 	state_get_current_returns = "yyy";
 	source_find_migrations_returns = migs;
 	source_find_migrations_returns_size = 1;
@@ -1016,7 +1033,7 @@ static void rollback_add_revision_fails(void)
 
 	reset_stubs();
 	migs = malloc(sizeof(char *));
-	migs[0] = strdup("test.sql");
+	migs[0] = my_strdup("test.sql");
 	state_get_current_returns = "yyy";
 	source_find_migrations_returns = migs;
 	source_find_migrations_returns_size = 1;
@@ -1040,7 +1057,7 @@ static void rollback_cleanup_table_fails(void)
 
 	reset_stubs();
 	migs = malloc(sizeof(char *));
-	migs[0] = strdup("test.sql");
+	migs[0] = my_strdup("test.sql");
 	state_get_current_returns = "yyy";
 	source_find_migrations_returns = migs;
 	source_find_migrations_returns_size = 1;
@@ -1064,7 +1081,7 @@ static void test_rollback(void)
 
 	reset_stubs();
 	migs = malloc(sizeof(char *));
-	migs[0] = strdup("test.sql");
+	migs[0] = my_strdup("test.sql");
 	state_get_current_returns = "yyy";
 	source_find_migrations_returns = migs;
 	source_find_migrations_returns_size = 1;
@@ -1107,7 +1124,7 @@ static void assimilate_add_revision_fails(void)
 	reset_stubs();
 	*errbuf = '\0';
 	migs = malloc(sizeof(char *));
-	migs[0] = strdup("test.sql");
+	migs[0] = my_strdup("test.sql");
 	state_get_current_returns = "yyy";
 	source_find_migrations_returns = migs;
 	source_find_migrations_returns_size = 1;
@@ -1130,7 +1147,7 @@ static void test_assimilate(void)
 
 	reset_stubs();
 	migs = malloc(sizeof(char *));
-	migs[0] = strdup("test.sql");
+	migs[0] = my_strdup("test.sql");
 	state_get_current_returns = "yyy";
 	source_find_migrations_returns = migs;
 	source_find_migrations_returns_size = 1;

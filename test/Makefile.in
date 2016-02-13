@@ -1,0 +1,74 @@
+#
+# Minimal Migration Manager
+# Copyright (C) 2015 Tim Hentenaar.
+#
+# This code is licenced under the Simplified BSD License.
+# See the LICENSE file for details.
+#
+CC=@CC@
+GCOVR=@GCOVR@
+
+CPPFLAGS=@TEST_CPPFLAGS@ -DIN_TESTS
+LDFLAGS=@TEST_LDFLAGS@
+LIBS=@TEST_LIBS@
+CFLAGS=-g @CFLAGS@
+
+HAVE_CUNIT=@have_cunit@
+
+# Gather the test sources
+SRCS := $(wildcard *.c)
+
+# Default flags for gcovr
+GCOVR_FLAGS = -d -r .. -e '^test/'
+
+# XXX: In CUnit suite structs, the test and suite names are _NOT_ const.
+CFLAGS := $(filter-out -Wwrite-strings,$(CFLAGS))
+
+# XXX: CUnit's ASSERT_PTR cast pointers to void *, discarding const.
+CFLAGS := $(filter-out -Wcast-qual, $(CFLAGS))
+
+# If COVERAGE is defined, generate a coverage report.
+ifneq ($(origin COVERAGE), undefined)
+ifneq (,$(GCOVR))
+  CFLAGS := -O0 -coverage $(filter-out -O2,$(CFLAGS))
+
+# Don't remove gcov files when using coveralls
+ifneq ($(origin COVERALLS), undefined)
+  GCOVR_FLAGS := $(filter-out -d,$(GCOVR_FLAGS))
+endif # COVERALLS
+endif # GCOVR
+endif # COVERAGE
+
+#
+# Targets
+#
+
+all: check
+
+clean:
+	@$(RM) test_runner
+
+ifeq (no,$(HAVE_CUNIT))
+test: ;$(warning CUnit must be installed to build the tests.)
+else
+test: test_runner
+	@./test_runner
+
+test_runner: $(SRCS)
+	@echo "  LD $@"
+	@$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ $^ ${LIBS}
+
+ifeq (,$(GCOVR))
+coverage: ;$(warning gcovr must be installed for coverage reports.)
+else
+coverage: test
+	@echo
+	@$(GCOVR) $(GCOVR_FLAGS)
+ifneq ($(origin COVERALLS), undefined)
+	@coveralls -r .. --gcov-options '\-lp'
+endif
+	@$(RM) -f *.gc[nd][oa]
+endif # GCOVR
+endif # HAVE_CUNIT
+
+.PHONY: all clean test coverage

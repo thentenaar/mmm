@@ -1,0 +1,109 @@
+#
+# Minimal Migration Manager
+# Copyright (C) 2015 Tim Hentenaar.
+#
+# This code is licenced under the Simplified BSD License.
+# See the LICENSE file for details.
+#
+
+# Standard path variables
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+datarootdir=@datarootdir@
+datadir=@datadir@
+bindir=@bindir@
+mandir=@mandir@
+
+# Tools
+CC=@CC@
+MKDIR_P=@MKDIR_P@
+INSTALL=@INSTALL@
+INDENT=@INDENT@
+
+# Flags
+CPPFLAGS=@CPPFLAGS@
+LDFLAGS=@LDFLAGS@
+CFLAGS=@CFLAGS@
+LIBS=@LIBS@
+
+# Features
+HAVE_SQLITE3=@have_sqlite3@
+HAVE_PGSQL=@have_pgsql@
+HAVE_MYSQL=@have_mysql@
+HAVE_LIBGIT2=@have_libgit2@
+
+# Gather the main sources
+SRCS := $(wildcard src/*.c) src/source/file.c
+HS   := $(wildcard src/*.h src/*/*.h)
+
+#
+# Handle features
+#
+
+ifeq (yes,$(HAVE_SQLITE3))
+  SRCS += src/db/sqlite3.c
+endif
+
+ifeq (yes,$(HAVE_PGSQL))
+  SRCS += src/db/pgsql.c
+endif
+
+ifeq (yes,$(HAVE_MYSQL))
+  SRCS += src/db/mysql.c
+endif
+
+ifeq (yes,$(HAVE_LIBGIT2))
+  SRCS += src/source/git.c
+endif
+
+# Objects
+OBJS = ${SRCS:.c=.o}
+
+#
+# Targets
+#
+mmm: $(OBJS)
+	@echo "  LD $@"
+	@$(CC) -o $@ $^ $(LDFLAGS) $(LIBS)
+
+all: mmm
+
+install: mmm
+	@echo " INSTALL mmm -> $(bindir)/mmm"
+	@$(MKDIR_P) $(bindir)
+	@$(INSTALL) -s -m0755 mmm $(bindir)/mmm
+	@echo " INSTALL mmm.1 -> $(mandir)/man1/mmm.1"
+	@$(MKDIR_P) $(mandir)/man1
+	@$(INSTALL) -m0644 mmm.1 $(mandir)/man1/mmm.1
+
+uninstall:
+	@echo " UNINSTALL mmm"
+	@$(RM) $(bindir)/mmm
+	@echo " UNINSTALL mmm.1"
+	@$(RM) $(mandir)/man1/mmm.1
+
+clean:
+	@$(MAKE) -C test clean
+	@$(RM) $(OBJS) mmm
+
+test:
+	@$(MAKE) -C test test
+
+coverage:
+	@COVERAGE=1 $(MAKE) -C test coverage
+
+indent:
+ifneq (,$(INDENT))
+	@echo "  INDENT src/*/*.[ch]"
+	@VERSION_CONTROL=none $(INDENT) $(SRCS) $(HS)
+else
+	@echo "'indent' not found."
+endif
+
+.c.o:
+	@echo "  CC $@"
+	@$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
+
+.SUFFIXES: .c .o
+.PHONY: all install uninstall clean test coverage indent
+

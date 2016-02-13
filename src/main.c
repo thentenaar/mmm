@@ -25,12 +25,6 @@
 #include "stringbuf.h"
 #include "utils.h"
 
-#ifdef USE_OPENSSL
-#include <openssl/ssl.h>
-#include <openssl/err.h>
-static void uninit_openssl(void);
-#endif
-
 /* Default config file path */
 static const char *default_config = "mmm.conf";
 
@@ -242,10 +236,6 @@ ret:
 	state_uninit();
 	source_uninit();
 	db_uninit();
-
-#ifdef USE_OPENSSL
-	uninit_openssl();
-#endif
 	return retval;
 
 show_usage:
@@ -288,25 +278,3 @@ static void usage(const char *progname)
 #endif /* GCC >= 4.6 */
 #endif /* }}} */
 
-#ifdef USE_OPENSSL
-/**
- * If any libraries we're using are linking against
- * OpenSSL, we need to do some cleanup to avoid
- * potentially leaking memory. However, if the libraries
- * we're using don't cleanup the SSL contexts they allocate
- * we may still leak a few related blocks here and there.
- *
- * Damn OpenSSL and its lack of a coherent initialization /
- * uninitialization API to hell and back again...
- *
- * See:
- * https://wiki.openssl.org/index.php/Library_Initialization
- */
-static void uninit_openssl(void)
-{
-	EVP_cleanup();
-	CRYPTO_cleanup_all_ex_data();
-	ERR_remove_state(0);
-	ERR_free_strings();
-}
-#endif

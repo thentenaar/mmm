@@ -245,7 +245,7 @@ static void test_state_cleanup_table(void)
 	state_init(1);
 	states_loaded = 1;
 	states[0].timestamp = tstamp;
-	snprintf(buf, 50, "%s %ld;", delete_state, tstamp);
+	sprintf(buf, "%s %ld;", delete_state, tstamp);
 	expected_query = buf;
 	CU_ASSERT_EQUAL(0, state_cleanup_table());
 	state_uninit();
