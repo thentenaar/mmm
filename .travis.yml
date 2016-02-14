@@ -11,36 +11,44 @@ branches:
         - master
         - covscan
 
+sudo: false
+
 os:
     - linux
+    - osx
 
 compilers:
     - gcc
     - clang
 
+matrix:
+    fast_finish: true
+    exclude:
+        - compiler: gcc
+          os: osx
+
 install:
-    - sudo apt-get update -qq
-    - sudo apt-get install -qq libpq-dev libmysqlclient-dev libsqlite3-dev
-    - sudo apt-get install -qq libcunit1 libcunit1-dev
-    - sudo pip install cpp-coveralls gcovr
-    - wget https://github.com/libgit2/libgit2/archive/v0.23.4.tar.gz
-    - tar -xzf v0.23.4.tar.gz
-    - mkdir -p libgit2-build && cd libgit2-build
-    - cmake --build=. ../libgit2-0.23.4 && make && sudo make install
-    - cd .. ; rm -rf libgit2-build libgit2-0.23.4
+    - ./.travis-install.sh
 
 script:
-    - if [ -z ${COVERITY_SCAN_BRANCH} ] || [ ${COVERITY_SCAN_BRANCH} != 1 ] ; then ./configure && make && make test ; fi
+    - if [ -z ${COVERITY_SCAN_BRANCH} ] || [ ${COVERITY_SCAN_BRANCH} != 1 ] ; then CPPFLAGS="-isystem $HOME/deproot/include" ./configure --with-libgit2=$HOME/deproot && make && make test ; fi
 
 after_success:
-    - COVERALLS=1 make clean coverage
+    - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then COVERALLS=1 make clean coverage ; fi
 
 addons:
+    apt:
+        packages:
+            - libpq-dev
+            - libmysqlclient-dev
+            - libsqlite3-dev
+            - libcunit1
+            - libcunit1-dev
     coverity_scan:
         project:
             name: "thentenaar/mmm"
             description: "Minimal Migration Manager"
         notification_email: tim@hentenaar.com
-        build_command_prepend: ./configure
+        build_command_prepend: ./configure --with-libgit2=$HOME/deproot
         build_command: make
         branch_pattern: covscan
