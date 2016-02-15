@@ -86,6 +86,10 @@ clean:
 	@$(MAKE) -C test clean
 	@$(RM) $(OBJS) mmm
 
+distclean: clean
+	@$(RM) Makefile test/Makefile config.status config.log
+	@$(RM) -r autom4te.cache
+
 test:
 	@$(MAKE) -C test test
 
