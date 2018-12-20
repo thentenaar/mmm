@@ -70,17 +70,17 @@ all: mmm
 
 install: mmm
 	@echo " INSTALL mmm -> $(bindir)/mmm"
-	@$(MKDIR_P) $(bindir)
-	@$(INSTALL) -s -m0755 mmm $(bindir)/mmm
+	@$(MKDIR_P) $(DESTDIR)/$(bindir)
+	@$(INSTALL) -s -m0755 mmm $(DESTDIR)/$(bindir)/mmm
 	@echo " INSTALL mmm.1 -> $(mandir)/man1/mmm.1"
-	@$(MKDIR_P) $(mandir)/man1
-	@$(INSTALL) -m0644 mmm.1 $(mandir)/man1/mmm.1
+	@$(MKDIR_P) $(DESTDIR)/$(mandir)/man1
+	@$(INSTALL) -m0644 mmm.1 $(DESTDIR)/$(mandir)/man1/mmm.1
 
 uninstall:
 	@echo " UNINSTALL mmm"
-	@$(RM) $(bindir)/mmm
+	@$(RM) $(DESTDIR)/$(bindir)/mmm
 	@echo " UNINSTALL mmm.1"
-	@$(RM) $(mandir)/man1/mmm.1
+	@$(RM) $(DESTDIR)/$(mandir)/man1/mmm.1
 
 clean:
 	@$(MAKE) -C test clean
