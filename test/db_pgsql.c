@@ -85,7 +85,7 @@ static void pgsql_connect_handles_errors(void)
 	errbuf[0] = '\0';
 
 	CU_ASSERT_PTR_NULL(db_pgsql_connect("test", 0, "u", "p", "db"));
-	CU_ASSERT_STRING_EQUAL(errbuf, "db_pgsql_connect: xxx\n");
+	CU_ASSERT_STRING_EQUAL(errbuf, "[pgsql_connect] xxx\n");
 	CU_ASSERT_TRUE(PQfinish_called);
 }
 
@@ -139,8 +139,7 @@ static void pgsql_query_fails(void)
 	PQerrorMessage_returns = "xxx";
 	CU_ASSERT_EQUAL(1, db_pgsql_query(dbh, "test", NULL, NULL));
 	CU_ASSERT_FALSE(PQclear_called);
-	CU_ASSERT_STRING_EQUAL(errbuf, "db_pgsql_query: "
-	                               "query failed: xxx\n");
+	CU_ASSERT_STRING_EQUAL(errbuf, "query failed: xxx\n");
 }
 
 /**
@@ -165,8 +164,7 @@ static void pgsql_query_bad_status(void)
 	PQerrorMessage_returns = "xxx";
 	CU_ASSERT_EQUAL(1, db_pgsql_query(dbh, "test", NULL, NULL));
 	CU_ASSERT_TRUE(PQclear_called);
-	CU_ASSERT_STRING_EQUAL(errbuf, "db_pgsql_query: "
-	                               "query failed: xxx\n");
+	CU_ASSERT_STRING_EQUAL(errbuf, "query failed: xxx\n");
 }
 
 /**

@@ -141,7 +141,7 @@ static void db_init_skips_drivers_without_init(void)
  */
 static void db_init_fails_to_init_driver(void)
 {
-	const char *err = "db_init: failed to initialize 'init'\n";
+	const char *err = "failed to initialize 'init'\n";
 	errbuf[0] = '\0';
 	drivers[0] = &driver_with_init;
 	driver_init_called = 1;
@@ -434,7 +434,7 @@ static void db_uninit_skips_drivers_without_uninit(void)
  */
 static void db_uninit_fails_to_uninit_driver(void)
 {
-	const char *err = "db_uninit: failed to uninitialize 'init'\n";
+	const char *err = "failed to uninitialize 'init'\n";
 
 	errbuf[0] = '\0';
 	memset(drivers, 0, sizeof(drivers));

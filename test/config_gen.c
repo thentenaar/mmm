@@ -26,8 +26,7 @@ extern char errbuf[];
  */
 static void generate_config_cant_stat_cwd(void)
 {
-	const char *err = "generate_config: unable to stat the current "
-	                  "directory\n";
+	const char *err = "unable to stat the current directory\n";
 
 	errbuf[0] = '\0';
 	reset_stubs();
@@ -45,7 +44,7 @@ static void generate_config_cant_stat_cwd(void)
  */
 static void gen_config_file_unable_to_create(void)
 {
-	const char *err = "gen_config_file: unable to create 'config'\n";
+	const char *err = "unable to create 'config'\n";
 
 	errbuf[0] = '\0';
 	reset_stubs();
@@ -145,8 +144,7 @@ static void test_gen_config_file(void)
  */
 static void generate_config_creating_migrations_dir_fails(void)
 {
-	const char *err = "generate_config: unable to create 'migrations' "
-	                  "directory\n";
+	const char *err = "unable to create 'migrations' directory\n";
 
 	errbuf[0] = '\0';
 	reset_stubs();

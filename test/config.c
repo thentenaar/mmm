@@ -333,8 +333,7 @@ static void test_set_value_number_not_numeric(void)
 {
 	int i;
 	size_t dest_len;
-	const char *err = "set_value_number: config: section.test: number "
-	                  "expected\n";
+	const char *err = "config: section.test: number expected\n";
 
 	errbuf[0] = '\0';
 	memset(&state, 0, sizeof(state));
@@ -364,8 +363,7 @@ static void set_value_number_not_unsigned(void)
 {
 	int i;
 	size_t dest_len;
-	const char *err = "set_value_number: config: section.test: "
-	                  "number expected\n";
+	const char *err = "config: section.test: number expected\n";
 
 	errbuf[0] = '\0';
 	memset(&state, 0, sizeof(state));
@@ -425,8 +423,7 @@ static void set_value_number_out_of_range(void)
 	CU_ASSERT_EQUAL(i, 1);
 
 	/* Ensure the expected error message was generated. */
-	sprintf(value, "set_value_number: config: section.test: %s\n",
-	        strerror(ERANGE));
+	sprintf(value, "config: section.test: %s\n", strerror(ERANGE));
 	CU_ASSERT_NOT_EQUAL_FATAL(errbuf[0], '\0');
 	CU_ASSERT_EQUAL_FATAL(strlen(errbuf), strlen(value));
 	CU_ASSERT_STRING_EQUAL(errbuf, value);
@@ -439,8 +436,7 @@ static void set_value_number_out_of_range(void)
 static void set_value_number_bad_dest_size(void)
 {
 	int i;
-	const char *err = "set_value_number: config: section.test: bad "
-	                  "dest size\n";
+	const char *err = "config: section.test: bad dest size\n";
 
 	errbuf[0] = '\0';
 	memset(&state, 0, sizeof(state));
@@ -524,7 +520,7 @@ static void test_set_value_number(void)
 static void handle_token_invalid_token_type(void)
 {
 	size_t s = 0;
-	const char *err = "handle_token: invalid config token type 4\n";
+	const char *err = "invalid config token type 4\n";
 	state.token = 4;
 	errbuf[0] = '\0';
 	CU_ASSERT_EQUAL(1, handle_token("test=", 5, &s));
@@ -580,7 +576,7 @@ static void parse_config_ignores_comments(void)
 static void parse_config_invalid_section(void)
 {
 	const char *err =
-	"parse_config: config: [Line: 1, Char: 2] Invalid Section\n";
+	"config: [Line: 1, Char: 2] Invalid Section\n";
 	char str[] = "[Atest]\n";
 	int c;
 
@@ -691,7 +687,7 @@ static void parse_config_section_where_value_expected(void)
 {
 	char str[] = "[main]\nkey[main]";
 	char *err  =
-	"parse_config: config: [Line: 2, Char: 4] Value expected\n";
+	"config: [Line: 2, Char: 4] Value expected\n";
 
 	errbuf[0] = '\0';
 	memset(&state, 0, sizeof(state));
@@ -711,7 +707,7 @@ static void parse_config_missing_section_start(void)
 {
 	char str[] = "main]\nkey=value";
 	char *err  =
-	"parse_config: config: [Line: 1, Char: 1] Section expected\n";
+	"config: [Line: 1, Char: 1] Section expected\n";
 
 check:
 	errbuf[0] = '\0';
@@ -746,7 +742,7 @@ static void parse_config_assignment_without_section(void)
 {
 	char str[] = "\n=value";
 	char *err  =
-	"parse_config: config: [Line: 2, Char: 1] Section expected\n";
+	"config: [Line: 2, Char: 1] Section expected\n";
 
 	errbuf[0] = '\0';
 	memset(&state, 0, sizeof(state));
@@ -766,7 +762,7 @@ static void parse_config_assignment_without_key(void)
 {
 	char str[] = "[main]\nkey=value\n=value2";
 	char *err  =
-	"parse_config: config: [Line: 3, Char: 1] Key expected\n";
+	"config: [Line: 3, Char: 1] Key expected\n";
 
 	errbuf[0] = '\0';
 	memset(&state, 0, sizeof(state));
@@ -786,7 +782,7 @@ static void parse_config_key_without_assignment_op(void)
 {
 	char str[] = "[main]\n_3y:";
 	char *err  =
-	"parse_config: config: [Line: 2, Char: 4] Value expected\n";
+	"config: [Line: 2, Char: 4] Value expected\n";
 
 	errbuf[0] = '\0';
 	memset(&state, 0, sizeof(state));

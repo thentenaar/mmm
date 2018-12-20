@@ -126,9 +126,9 @@ static void test_git_init_uninit(void)
 static void test_git_get_head(void)
 {
 	local_head[0] = '\0';
-	CU_ASSERT_PTR_NULL(git_get_head());
+	CU_ASSERT_FALSE(git_get_head());
 	memcpy(local_head, "1", 2);
-	CU_ASSERT_PTR_NOT_NULL(git_get_head());
+	CU_ASSERT_TRUE(!!git_get_head());
 }
 
 /**
@@ -306,8 +306,7 @@ static void git_find_migrations_handles_libgit2_error_messages(void)
 
 	CU_ASSERT_PTR_NULL(git_find_migrations("1", NULL, &size));
 	CU_ASSERT_EQUAL(size, 0);
-	CU_ASSERT_STRING_EQUAL(errbuf, "git_find_migrations: "
-	                       "All your base are belong to us\n");
+	CU_ASSERT_STRING_EQUAL(errbuf, "All your base are belong to us\n");
 }
 
 /**

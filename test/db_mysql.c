@@ -93,7 +93,7 @@ static void mysql_connect_fails(void)
 	CU_ASSERT_TRUE(mysql_init_called && mysql_options_called);
 	CU_ASSERT_TRUE(mysql_real_connect_called);
 	CU_ASSERT_TRUE(mysql_error_called && mysql_close_called);
-	CU_ASSERT_STRING_EQUAL(errbuf, "db_mysql_connect: xxx\n");
+	CU_ASSERT_STRING_EQUAL(errbuf, "[mysql_connect] xxx\n");
 
 	/* Connecting to a socket */
 	reset_mysql_stubs();
@@ -106,7 +106,7 @@ static void mysql_connect_fails(void)
 	CU_ASSERT_TRUE(mysql_init_called && mysql_options_called);
 	CU_ASSERT_TRUE(mysql_real_connect_called);
 	CU_ASSERT_TRUE(mysql_error_called && mysql_close_called);
-	CU_ASSERT_STRING_EQUAL(errbuf, "db_mysql_connect: xxx\n");
+	CU_ASSERT_STRING_EQUAL(errbuf, "[mysql_connect] xxx\n");
 
 	/* Connecting to the default host */
 	reset_mysql_stubs();
@@ -119,7 +119,7 @@ static void mysql_connect_fails(void)
 	CU_ASSERT_TRUE(mysql_init_called && mysql_options_called);
 	CU_ASSERT_TRUE(mysql_real_connect_called);
 	CU_ASSERT_TRUE(mysql_error_called && mysql_close_called);
-	CU_ASSERT_STRING_EQUAL(errbuf, "db_mysql_connect: xxx\n");
+	CU_ASSERT_STRING_EQUAL(errbuf, "[mysql_connect] xxx\n");
 }
 
 /**
@@ -177,8 +177,7 @@ static void mysql_query_fails(void)
 
 	CU_ASSERT_EQUAL(1, db_mysql_query(dbh, "test", row_cb, NULL));
 	CU_ASSERT_TRUE(mysql_real_query_called && mysql_error_called);
-	CU_ASSERT_STRING_EQUAL(errbuf, "db_mysql_query: query failed: "
-	                               "xxx\n");
+	CU_ASSERT_STRING_EQUAL(errbuf, "query failed: xxx\n");
 }
 
 /**

@@ -62,8 +62,8 @@ static char **backend_find_migrations(const char *cur_rev,
                                       size_t *size)
 {
 	backend_find_migrations_called++;
-	CU_ASSERT_PTR_NOT_NULL(cur_rev);
-	CU_ASSERT_PTR_NOT_NULL(size);
+	CU_ASSERT_TRUE(!!cur_rev);
+	CU_ASSERT_TRUE(!!size);
 	*size = 12345;
 	return (char **)1234;
 }
@@ -111,7 +111,7 @@ static void source_init_skips_backends_without_init(void)
 	backend_init_called = 0;
 	sources[0] = &backend_without_init;
 	source_init();
-	CU_ASSERT_PTR_NOT_NULL(sources[0]);
+	CU_ASSERT_TRUE(!!sources[0]);
 	CU_ASSERT_EQUAL(errbuf[0], '\0');
 	CU_ASSERT_FALSE(backend_init_called);
 }
@@ -122,13 +122,13 @@ static void source_init_skips_backends_without_init(void)
  */
 static void source_init_fails_to_init_backend(void)
 {
-	const char *err = "source_init: failed to initialize 'init'\n";
+	const char *err = "failed to initialize 'init'\n";
 	errbuf[0] = '\0';
 	sources[0] = &backend_with_init;
 	backend_init_called = 1;
 	source_init();
 	CU_ASSERT_EQUAL(backend_init_called, 2);
-	CU_ASSERT_PTR_NULL(sources[0]);
+	CU_ASSERT_FALSE(sources[0]);
 	CU_ASSERT_NOT_EQUAL_FATAL(errbuf[0], '\0');
 	CU_ASSERT_EQUAL_FATAL(strlen(errbuf), strlen(err));
 	CU_ASSERT_STRING_EQUAL(errbuf, err);
@@ -243,8 +243,8 @@ static void source_get_local_head_invalid_params(void)
 	sources[0] = &backend_with_init;
 
 	/* !source */
-	CU_ASSERT_PTR_NULL(source_get_local_head(NULL));
-	CU_ASSERT_PTR_NULL(source_get_local_head("\0"));
+	CU_ASSERT_FALSE(source_get_local_head(NULL));
+	CU_ASSERT_FALSE(source_get_local_head("\0"));
 	CU_ASSERT_FALSE(backend_get_head_called);
 }
 
@@ -256,7 +256,7 @@ static void source_get_local_head_no_usable_backends(void)
 {
 	backend_get_head_called = 0;
 	memset(sources, 0, sizeof(sources));
-	CU_ASSERT_PTR_NULL(source_get_local_head("init"));
+	CU_ASSERT_FALSE(source_get_local_head("init"));
 	CU_ASSERT_FALSE(backend_get_head_called);
 }
 
@@ -273,7 +273,7 @@ static void test_source_get_local_head(void)
 	sources[1] = &backend_with_init;
 
 	head = source_get_local_head("init");
-	CU_ASSERT_PTR_NOT_NULL_FATAL(head);
+	CU_ASSERT_TRUE_FATAL(!!head);
 	CU_ASSERT_STRING_EQUAL(head, "head");
 	CU_ASSERT_TRUE(backend_get_head_called);
 }
@@ -289,8 +289,8 @@ static void source_get_migration_path_invalid_params(void)
 	sources[0] = &backend_with_init;
 
 	/* !source */
-	CU_ASSERT_PTR_NULL(source_get_migration_path(NULL));
-	CU_ASSERT_PTR_NULL(source_get_migration_path("\0"));
+	CU_ASSERT_FALSE(source_get_migration_path(NULL));
+	CU_ASSERT_FALSE(source_get_migration_path("\0"));
 	CU_ASSERT_FALSE(backend_get_migration_path_called);
 }
 
@@ -302,7 +302,7 @@ static void source_get_migration_path_no_usable_backends(void)
 {
 	backend_get_migration_path_called = 0;
 	memset(sources, 0, sizeof(sources));
-	CU_ASSERT_PTR_NULL(source_get_migration_path("init"));
+	CU_ASSERT_FALSE(source_get_migration_path("init"));
 	CU_ASSERT_FALSE(backend_get_migration_path_called);
 }
 
@@ -319,7 +319,7 @@ static void test_source_get_migration_path(void)
 	sources[1] = &backend_with_init;
 
 	path = source_get_migration_path("init");
-	CU_ASSERT_PTR_NOT_NULL_FATAL(path);
+	CU_ASSERT_TRUE_FATAL(!!path);
 	CU_ASSERT_STRING_EQUAL(path, ".");
 	CU_ASSERT_TRUE(backend_get_migration_path_called);
 }
@@ -336,7 +336,7 @@ static void source_uninit_skips_backends_without_uninit(void)
 	sources[0] = &backend_without_init;
 
 	source_uninit();
-	CU_ASSERT_PTR_NOT_NULL(sources[0]);
+	CU_ASSERT_TRUE(!!sources[0]);
 	CU_ASSERT_EQUAL(errbuf[0], '\0');
 	CU_ASSERT_FALSE(backend_uninit_called);
 }
@@ -347,7 +347,7 @@ static void source_uninit_skips_backends_without_uninit(void)
  */
 static void source_uninit_fails_to_uninit_backend(void)
 {
-	const char *err = "source_uninit: failed to uninitialize 'init'\n";
+	const char *err = "failed to uninitialize 'init'\n";
 
 	errbuf[0] = '\0';
 	memset(sources, 0, sizeof(sources));
@@ -356,7 +356,7 @@ static void source_uninit_fails_to_uninit_backend(void)
 
 	source_uninit();
 	CU_ASSERT_EQUAL(backend_uninit_called, 2);
-	CU_ASSERT_PTR_NULL(sources[0]);
+	CU_ASSERT_FALSE(sources[0]);
 	CU_ASSERT_NOT_EQUAL_FATAL(errbuf[0], '\0');
 	CU_ASSERT_EQUAL_FATAL(strlen(errbuf), strlen(err));
 	CU_ASSERT_STRING_EQUAL(errbuf, err);

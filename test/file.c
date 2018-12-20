@@ -48,7 +48,7 @@ static void map_file_invalid_args(void)
 static void map_file_already_mapped(void)
 {
 	size_t size = 1;
-	const char *err = "map_file: failed to map 'test': "
+	const char *err = "failed to map 'test': "
 	                  "another file is already mapped\n";
 
 	errbuf[0] = '\0';
@@ -73,7 +73,7 @@ static void map_file_already_mapped(void)
 static void map_file_cant_stat_file(void)
 {
 	size_t size = 1;
-	const char *err1 = "map_file: failed to map 'test'\n";
+	const char *err1 = "failed to map 'test'\n";
 	char err2[128];
 
 	errbuf[0] = '\0';
@@ -94,7 +94,7 @@ static void map_file_cant_stat_file(void)
 	CU_ASSERT_STRING_EQUAL(errbuf, err1);
 
 	/* With errno */
-	sprintf(err2, "map_file: failed to map 'test': %s\n",
+	sprintf(err2, "failed to map 'test': %s\n",
 	        strerror(EACCES));
 	fstat_errno = EACCES;
 	CU_ASSERT_PTR_NULL(map_file("test", &size));
@@ -112,7 +112,7 @@ static void map_file_cant_stat_file(void)
 static void map_file_wont_map_empty_file(void)
 {
 	size_t size = 1;
-	const char *err = "map_file: failed to map 'test'\n";
+	const char *err = "failed to map 'test'\n";
 
 	errbuf[0] = '\0';
 	reset_stubs();
@@ -138,7 +138,7 @@ static void map_file_wont_map_empty_file(void)
 static void map_file_wont_map_non_regular_file(void)
 {
 	size_t size = 1;
-	const char *err = "map_file: 'test' is not a regular file\n";
+	const char *err = "'test' is not a regular file\n";
 
 	errbuf[0] = '\0';
 	reset_stubs();
@@ -178,7 +178,7 @@ static void map_file_wont_map_bad_file_size(void)
 	open_returns = 1;
 
 	/* < 0 */
-	sprintf(err, "map_file: bad size for 'test' (%ld bytes)\n",
+	sprintf(err, "bad size for 'test' (%ld bytes)\n",
 	        stat_returns_buf.st_size);
 	CU_ASSERT_PTR_NULL(map_file("test", &size));
 	CU_ASSERT_EQUAL(size, 0);
@@ -189,7 +189,7 @@ static void map_file_wont_map_bad_file_size(void)
 
 	/* == SSIZE_MAX */
 	stat_returns_buf.st_size = SSIZE_MAX;
-	sprintf(err, "map_file: bad size for 'test' (%ld bytes)\n",
+	sprintf(err, "bad size for 'test' (%ld bytes)\n",
 	        stat_returns_buf.st_size);
 	CU_ASSERT_PTR_NULL(map_file("test", &size));
 	CU_ASSERT_EQUAL(size, 0);
@@ -206,7 +206,7 @@ static void map_file_wont_map_bad_file_size(void)
 static void map_file_error_if_open_fails(void)
 {
 	size_t size = 1;
-	const char *err = "map_file: failed to map 'test'\n";
+	const char *err = "failed to map 'test'\n";
 
 	errbuf[0] = '\0';
 	reset_stubs();
@@ -233,7 +233,7 @@ static void map_file_error_if_open_fails(void)
 static void read_file_lseek_fails(void)
 {
 	size_t size = 1;
-	const char *err = "map_file: failed to map 'test'\n";
+	const char *err = "failed to map 'test'\n";
 
 	errbuf[0] = '\0';
 	reset_stubs();
@@ -265,7 +265,7 @@ static void read_file_read_fails(void)
 	size_t size = 1;
 	char err[256];
 
-	sprintf(err, "map_file: failed to map 'test': %s\n",
+	sprintf(err, "failed to map 'test': %s\n",
 	        strerror(EBADF));
 
 	errbuf[0] = '\0';
@@ -300,7 +300,7 @@ static void read_file_premature_eof(void)
 	size_t size = 1;
 	char err[256];
 
-	sprintf(err, "map_file: failed to map 'test'\n");
+	sprintf(err, "failed to map 'test'\n");
 
 	errbuf[0] = '\0';
 	reset_stubs();

@@ -119,7 +119,7 @@ static void state_get_current_null_states(void)
 	state_uninit();
 	CU_ASSERT_EQUAL(states_allocated, 0);
 	CU_ASSERT_EQUAL(states_loaded, 0);
-	CU_ASSERT_PTR_NULL(state_get_current());
+	CU_ASSERT_FALSE(state_get_current());
 }
 
 /**
@@ -131,7 +131,7 @@ static void state_get_current_returns_loaded_state(void)
 	state_init(1);
 	states_loaded = 1;
 	memcpy(states[0].revision, "XXX", 4);
-	CU_ASSERT_PTR_EQUAL(state_get_current(), states[0].revision);
+	CU_ASSERT_TRUE(state_get_current() == states[0].revision);
 	states_loaded = 0;
 	state_uninit();
 }
@@ -145,13 +145,13 @@ static void state_get_current_no_room_for_new_state(void)
 	state_init(1);
 	set_states_loaded = states_allocated;
 	expected_query = get_current_state;
-	CU_ASSERT_PTR_NULL(state_get_current());
+	CU_ASSERT_FALSE(state_get_current());
 	state_uninit();
 
 	state_init(1);
 	set_states_loaded = states_allocated + 1;
 	expected_query = get_current_state;
-	CU_ASSERT_PTR_NULL(state_get_current());
+	CU_ASSERT_FALSE(state_get_current());
 	state_uninit();
 }
 
@@ -164,7 +164,7 @@ static void state_get_current_fetches_current_state(void)
 	state_init(1);
 	states_loaded = set_states_loaded = 0;
 	expected_query = get_current_state;
-	CU_ASSERT_PTR_EQUAL(state_get_current(), states[0].revision);
+	CU_ASSERT_TRUE(state_get_current() == states[0].revision);
 	CU_ASSERT_EQUAL(states[0].timestamp, tstamp);
 	CU_ASSERT_EQUAL(states[0].version, STATE_VERSION);
 	CU_ASSERT_STRING_EQUAL(states[0].revision, xrow[2]);
@@ -183,7 +183,7 @@ static void state_get_previous_null_states(void)
 	state_uninit();
 	CU_ASSERT_EQUAL(states_allocated, 0);
 	CU_ASSERT_EQUAL(states_loaded, 0);
-	CU_ASSERT_PTR_NULL(state_get_previous());
+	CU_ASSERT_FALSE(state_get_previous());
 }
 
 /**
@@ -195,7 +195,7 @@ static void state_get_previous_returns_loaded_state(void)
 	state_init(1);
 	states_loaded = 1;
 	memcpy(states[0].previous, "XXX", 4);
-	CU_ASSERT_PTR_EQUAL(state_get_previous(), states[0].previous);
+	CU_ASSERT_TRUE(state_get_previous() == states[0].previous);
 	states_loaded = 0;
 	state_uninit();
 }
@@ -264,7 +264,7 @@ static void state_add_revision_invalid_params(void)
  */
 static void state_add_revision_empty_rev(void)
 {
-	const char *err = "state_add_revision: revision string empty\n";
+	const char *err = "revision string empty\n";
 
 	errbuf[0] = '\0';
 	CU_ASSERT_EQUAL(1, state_add_revision(""));
@@ -278,7 +278,7 @@ static void state_add_revision_empty_rev(void)
  */
 static void state_add_revision_rev_too_long(void)
 {
-	const char *err = "state_add_revision: revision string too long\n";
+	const char *err = "revision string too long\n";
 	const char *rev = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 	                  "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 	                  "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";

@@ -67,7 +67,7 @@ static void sqlite3_connect_handles_error_messages(void)
 
 	CU_ASSERT_PTR_NULL(db_sqlite3_connect(NULL, 0, NULL, NULL,
 	                                      "test.db"));
-	CU_ASSERT_STRING_EQUAL(errbuf, "db_sqlite3_connect: test\n");
+	CU_ASSERT_STRING_EQUAL(errbuf, "[sqlite3_connect] test\n");
 }
 
 /**
@@ -102,7 +102,7 @@ static void sqlite3_query_fails(void)
  */
 static void sqlite3_query_fails_with_error_message(void)
 {
-	const char *err = "db_sqlite3_query: query failed: xxx\n";
+	const char *err = "query failed: xxx\n";
 
 	*errbuf = '\0';
 	sqlite3_exec_errmsg = "xxx";

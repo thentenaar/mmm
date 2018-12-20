@@ -40,7 +40,7 @@ static struct dirent mig_no_sql = {
 
 /* No numeric designation */
 static const char *err_no_num =
-	"scan_path_for_migrations: warning: 'yyyyyy' lacks a valid "
+	"warning: 'yyyyyy' lacks a valid "
 	"numeric designation\n";
 
 static struct dirent mig_no_num = {
@@ -62,7 +62,7 @@ static struct dirent mig_empty_name = {
 
 /* Designation out of range */
 const char *err_des_range =
-	"scan_path_for_migrations: warning: "
+	"warning: "
 	"'999999999999999999999999999.sql' "
 	"lacks a valid numeric designation\n";
 

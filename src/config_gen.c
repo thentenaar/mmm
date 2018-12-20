@@ -98,6 +98,9 @@ write_more:
 	}
 
 ret:
+#ifndef IN_TESTS
+	printf("Configuration written to %s\n", config_file);
+#endif
 	if (fd > -1) close(fd);
 	return retval;
 

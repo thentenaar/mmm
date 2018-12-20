@@ -15,7 +15,6 @@ sudo: false
 
 os:
     - linux
-    - osx
 
 compilers:
     - gcc
@@ -23,9 +22,6 @@ compilers:
 
 matrix:
     fast_finish: true
-    exclude:
-        - compiler: gcc
-          os: osx
 
 install:
     - ./.travis-install.sh
