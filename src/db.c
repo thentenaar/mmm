@@ -69,8 +69,8 @@ void db_init(void)
 	for (i = 0; i < N_DB_DRIVERS; i++) {
 		if (!drivers[i] || !drivers[i]->init) continue;
 		if (drivers[i]->init()) {
-			ERROR_1("failed to initialize '%s'",
-			        drivers[i]->name);
+			error("failed to initialize '%s'",
+			      drivers[i]->name);
 			drivers[i] = NULL;
 		}
 	}
@@ -118,7 +118,7 @@ int db_connect(const char *driver, const char *host,
 		goto ret;
 
 	if (session.dbh) {
-		ERROR("another database session is currently active");
+		error("another database session is currently active");
 		goto ret;
 	}
 
@@ -206,8 +206,8 @@ void db_uninit(void)
 	for (i = 0; i < N_DB_DRIVERS; i++) {
 		if (!drivers[i] || !drivers[i]->uninit) continue;
 		if (drivers[i]->uninit()) {
-			ERROR_1("failed to uninitialize '%s'",
-			        drivers[i]->name);
+			error("failed to uninitialize '%s'",
+			      drivers[i]->name);
 		}
 	}
 }

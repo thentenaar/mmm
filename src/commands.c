@@ -24,11 +24,13 @@
  * Get the local HEAD revision.
  */
 static int head(const char *source, const char *current,
-                int UNUSED(argc), char *UNUSED(argv[]))
+                int argc, char *argv[])
 {
 	const char *local_head;
 	char **migrations;
 	size_t size = 0;
+	(void)argc;
+	(void)argv;
 
 	/* Get the migrations */
 	migrations = source_find_migrations(source, current, NULL, &size);
@@ -53,12 +55,15 @@ static int head(const char *source, const char *current,
  * This command has one argument: The path to the file to seed the
  * database with.
  */
-static int seed(const char *UNUSED(source), const char *UNUSED(current),
-                int UNUSED(argc), char *argv[])
+static int seed(const char *source, const char *current,
+                int argc, char *argv[])
 {
 	int retval = EXIT_SUCCESS;
 	const char *sfile = NULL;
 	size_t size;
+	(void)source;
+	(void)current;
+	(void)argc;
 
 	if (!argv[0]) goto err;
 
@@ -87,10 +92,12 @@ err:
  * List all pending migrations.
  */
 static int pending(const char *source, const char *current,
-                   int UNUSED(argc), char *UNUSED(argv[]))
+                   int argc, char *argv[])
 {
 	char **migrations = NULL;
 	size_t size = 0, i;
+	(void)argc;
+	(void)argv;
 
 	/* Get the migrations */
 	migrations = source_find_migrations(source, current, NULL, &size);
@@ -112,7 +119,7 @@ static int pending(const char *source, const char *current,
  * Apply all pending migrations.
  */
 static int migrate(const char *source, const char *current,
-                   int UNUSED(argc), char *UNUSED(argv[]))
+                   int argc, char *argv[])
 {
 	int retval = EXIT_FAILURE;
 	char **migrations = NULL;
@@ -120,18 +127,20 @@ static int migrate(const char *source, const char *current,
 	const char *local_head;
 	size_t size = 0, mp_len;
 	unsigned int i;
+	(void)argc;
+	(void)argv;
 
 	/* Get the migrations */
 	migrations = source_find_migrations(source, current, NULL, &size);
 	if (!migrations) {
-		ERROR("no migrations found");
+		error("migrate: no migrations found");
 		retval = EXIT_SUCCESS;
 		goto ret;
 	}
 
 	migration_path = source_get_migration_path(source);
 	if (!migration_path) {
-		ERROR("unable to get migration path");
+		error("migrate: unable to get migration path");
 		goto ret;
 	} else {
 		mp_len = strlen(migration_path);
@@ -142,7 +151,7 @@ static int migrate(const char *source, const char *current,
 	}
 
 	if (db_query("BEGIN", NULL, NULL)) {
-		ERROR("failed to BEGIN transaction");
+		error("migrate: failed to BEGIN transaction");
 		goto ret;
 	}
 
@@ -156,7 +165,7 @@ static int migrate(const char *source, const char *current,
 	}
 
 	if (db_query("COMMIT", NULL, NULL)) {
-		ERROR("failed to COMMIT transaction");
+		error("migrate: failed to COMMIT transaction");
 		goto ret;
 	}
 
@@ -165,7 +174,7 @@ static int migrate(const char *source, const char *current,
 	local_head = source_get_local_head(source);
 	if (state_add_revision(local_head)
 	    || state_cleanup_table()) {
-		ERROR("unable to set current revision");
+		error("migrate: unable to set current revision");
 		retval = EXIT_FAILURE;
 	}
 
@@ -180,7 +189,7 @@ ret:
 rollback:
 	PRINT(" FAILED\n");
 	if (db_query("ROLLBACK", NULL, NULL)) {
-		ERROR("failed to ROLLBACK transaction");
+		error("migrate: failed to ROLLBACK transaction");
 	}
 
 	/**
@@ -190,7 +199,7 @@ rollback:
 	if (db_has_transactional_ddl())
 		goto ret;
 
-	ERROR("your database lacks transactional DDL support. "
+	error("migrate: your database lacks transactional DDL support. "
 	      "Performing a manual rollback.");
 	while (--i <= size) {
 		PRINT_1("--> Rolling back %s...", migrations[i]);
@@ -218,7 +227,7 @@ static int rollback(const char *source, const char *current,
 	else revision = argv[0];
 
 	if (!revision || !strcmp(current, revision)) {
-		ERROR("nothing to roll back");
+		error("rollback: nothing to roll back");
 		retval = EXIT_SUCCESS;
 		goto ret;
 	}
@@ -227,13 +236,13 @@ static int rollback(const char *source, const char *current,
 	migrations = source_find_migrations(source, current, revision,
 	                                    &size);
 	if (!migrations) {
-		ERROR("no migrations found");
+		error("rollback: no migrations found");
 		goto ret;
 	}
 
 	migration_path = source_get_migration_path(source);
 	if (!migration_path) {
-		ERROR("unable to get migration path");
+		error("rollback: unable to get migration path");
 		goto ret;
 	} else {
 		mp_len = strlen(migration_path);
@@ -244,7 +253,7 @@ static int rollback(const char *source, const char *current,
 	}
 
 	if (db_query("BEGIN", NULL, NULL)) {
-		ERROR("failed to BEGIN transaction");
+		error("rollback: failed to BEGIN transaction");
 		goto ret;
 	}
 
@@ -258,7 +267,7 @@ static int rollback(const char *source, const char *current,
 	}
 
 	if (db_query("COMMIT", NULL, NULL)) {
-		ERROR("failed to COMMIT transaction");
+		error("rollback: failed to COMMIT transaction");
 		goto ret;
 	}
 
@@ -279,13 +288,13 @@ ret:
 rollback:
 	PRINT(" FAILED\n");
 	if (db_query("ROLLBACK", NULL, NULL)) {
-		ERROR("failed to ROLLBACK transaction");
+		error("rollback: failed to ROLLBACK transaction");
 	}
 
 	if (db_has_transactional_ddl())
 		goto ret;
 
-	ERROR("your database lacks transactional DDL support. "
+	error("rollback: your database lacks transactional DDL support. "
 	      "Please check your database manually as it may "
 	      "be in an unexpected state.");
 	goto ret;
@@ -296,17 +305,20 @@ rollback:
  * to the current revision.
  */
 static int assimilate(const char *source,
-                      const char *UNUSED(current),
-                      int UNUSED(argc), char *UNUSED(argv[]))
+                      const char *current,
+                      int argc, char *argv[])
 {
 	char **migrations;
 	size_t size = 0;
 	int retval = EXIT_FAILURE;
+	(void)current;
+	(void)argc;
+	(void)argv;
 
 	/* Create our state table. */
 	PRINT("Resistance is futile...\n");
 	if (state_create()) {
-		ERROR("unable to create state table");
+		error("assimilate: unable to create state table");
 		goto ret;
 	}
 
@@ -321,7 +333,7 @@ static int assimilate(const char *source,
 	retval = EXIT_SUCCESS;
 	if (state_add_revision(source_get_local_head(source))) {
 		state_destroy();
-		ERROR("unable to set current revision");
+		error("assimilate: unable to set current revision");
 		retval = EXIT_FAILURE;
 	}
 
@@ -393,7 +405,7 @@ int run_command(const char *source, int argc, char *argv[])
 	if (commands[i].need_current) {
 		current = state_get_current();
 		if (!current) {
-			ERROR("Unable to get the current revision");
+			error("Unable to get the current revision");
 			goto ret;
 		}
 	}

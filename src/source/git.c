@@ -338,8 +338,8 @@ ret:
 
 err:
 	if (errno == ENOMEM) {
-		ERROR_1("failed to allocate memory: %s",
-		        strerror(ENOMEM));
+		error("failed to allocate memory: %s",
+		      strerror(ENOMEM));
 	}
 
 	size = SIZE_MAX;
@@ -355,7 +355,7 @@ err:
  */
 static char **flatten_mlist(size_t maxlen, size_t *size)
 {
-	size_t i, j, k;
+	size_t i, j = 0, k = 0;
 	struct mlist *ml;
 	char **migrations = NULL, **tmp;
 
@@ -367,7 +367,8 @@ static char **flatten_mlist(size_t maxlen, size_t *size)
 	if (!migrations) goto malloc_err;
 
 	/* Copy the migrations, sorting each batch. */
-	for (j = 0, k = 0, ml = mlist_head; ml; ml = ml->next, k = j) {
+	for (ml = mlist_head; ml; ml = ml->next) {
+		k = j;
 		for (i = 0; i < ml->size; i++) {
 			if (!is_path_sql(ml->migrations[i]))
 				continue;
@@ -407,9 +408,8 @@ ret:
 	return migrations;
 
 malloc_err:
-	if (errno == ENOMEM) {
-		ERROR_1("failed to allocate memory: %s", strerror(errno));
-	}
+	if (errno == ENOMEM)
+		error("failed to allocate memory: %s", strerror(errno));
 
 	if (migrations) {
 		while (*size) free(migrations[--*size]);
@@ -447,7 +447,7 @@ static char **git_find_migrations(const char *cur_rev,
 
 	*size = 0;
 	if (!*config.migration_path) {
-		ERROR("no migration_path specified");
+		error("no migration_path specified");
 		goto ret;
 	}
 
@@ -515,7 +515,7 @@ static char **git_find_migrations(const char *cur_rev,
 
 ret:
 	if (giterr_last())
-		ERROR_1("%s", giterr_last()->message);
+		error("%s", giterr_last()->message);
 	git_revwalk_free(walk);
 	git_object_free(prev);
 	git_object_free(head);
@@ -574,7 +574,7 @@ static int git_init(void)
 	memset(&config, 0, sizeof(config));
 	config.repo_path[0] = '.';
 	memset(&local_head, 0, sizeof(local_head));
-	return git_libgit2_init();
+	return git_libgit2_init() < 0;
 }
 
 /**

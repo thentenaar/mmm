@@ -96,8 +96,8 @@ char *map_file(const char *path, size_t *size)
 
 	/* Ensure another file isn't still mapped. */
 	if (file_mapped) {
-		ERROR_1("failed to map '%s': "
-		        "another file is already mapped", path);
+		error("failed to map '%s': "
+		      "another file is already mapped", path);
 		goto ret;
 	}
 
@@ -112,13 +112,13 @@ char *map_file(const char *path, size_t *size)
 
 	/* Don't map non-regular files either */
 	if (!S_ISREG(sbuf.st_mode)) {
-		ERROR_1("'%s' is not a regular file", path);
+		error("'%s' is not a regular file", path);
 		goto ret;
 	}
 
 	/* Ensure the file will fit in our buffer */
 	if ((size_t)sbuf.st_size >= FILEBUFSIZ) {
-		ERROR_2("bad size for '%s' (%ld bytes)", path,
+		error("bad size for '%s' (%ld bytes)", path,
 		        sbuf.st_size);
 		goto ret;
 	}
@@ -137,8 +137,8 @@ ret:
 
 err:
 	if (errno) {
-		ERROR_2("failed to map '%s': %s", path, strerror(errno));
-	} else ERROR_1("failed to map '%s'", path);
+		error("failed to map '%s': %s", path, strerror(errno));
+	} else error("failed to map '%s'", path);
 	if (file_mapped) file_mapped = 0;
 	file_size = 0;
 	goto ret;

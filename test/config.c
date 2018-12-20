@@ -263,8 +263,7 @@ static void set_value_string_value_too_big(void)
 {
 	int i;
 	size_t dest_len;
-	const char *err = "set_value_string: config: section.test: value "
-	                  "too long\n";
+	const char *err = "config: section.test: value too long\n";
 
 	errbuf[0] = '\0';
 	memset(&state, 0, sizeof(state));

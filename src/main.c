@@ -100,18 +100,18 @@ static int load_config(void)
 	if (!conf) goto err;
 
 	if (parse_config(conf, size)) {
-		ERROR("failed to parse config");
+		error("failed to parse config");
 		exit(EXIT_FAILURE);
 	}
 
 	/* Check for source and driver */
 	if (!*config.source) {
-		ERROR("no source specified in config");
+		error("no source specified in config");
 		goto err;
 	}
 
 	if (!*config.driver) {
-		ERROR("no driver specified in config");
+		error("no driver specified in config");
 		goto err;
 	}
 
@@ -209,14 +209,14 @@ int main(int argc, char *argv[])
 
 	/* Ensure source is valid */
 	if (!source_get_config_cb(config.source, strlen(config.source))) {
-		ERROR_1("unknown source: %s", config.source);
+		error("unknown source: %s", config.source);
 		goto err;
 	}
 
 	/* Connect to the database */
 	if (db_connect(config.driver, config.host, config.port,
 	               config.username, config.password, config.db)) {
-		ERROR("failed to connect to the database");
+		error("failed to connect to the database");
 		goto err;
 	}
 
@@ -224,9 +224,9 @@ int main(int argc, char *argv[])
 	retval = run_command(config.source, argc, &argv[n_args]);
 	if (retval == COMMAND_INVALID_ARGS) {
 		if (argv[n_args]) {
-			ERROR_1("%s: invalid command", argv[n_args]);
+			error("%s: invalid command", argv[n_args]);
 		} else {
-			ERROR("invalid command");
+			error("invalid command");
 		}
 	}
 

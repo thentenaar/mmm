@@ -47,16 +47,20 @@ static int db_sqlite3_uninit(void)
  *                     in-memory database.
  * \return A pointer to a sqlite3 database handle.
  */
-static void *db_sqlite3_connect(const char *UNUSED(host),
-                                const unsigned short UNUSED(port),
-                                const char *UNUSED(username),
-                                const char *UNUSED(password),
+static void *db_sqlite3_connect(const char *host,
+                                const unsigned short port,
+                                const char *username,
+                                const char *password,
                                 const char *db)
 {
 	sqlite3 *dbh = NULL;
+	(void)host;
+	(void)port;
+	(void)username;
+	(void)password;
 
 	if (db && *db && sqlite3_open(db, &dbh) != SQLITE_OK) {
-		ERROR_1("%s", sqlite3_errmsg(dbh));
+		error("[sqlite3_connect] %s", sqlite3_errmsg(dbh));
 		dbh = NULL;
 	}
 
@@ -89,7 +93,7 @@ static int db_sqlite3_query(void *dbh, const char *query,
 
 	/* Print an error if we have one */
 	if (i != SQLITE_OK && errmsg)
-		ERROR_1("query failed: %s", errmsg);
+		error("query failed: %s", errmsg);
 	if (errmsg) sqlite3_free(errmsg);
 	return !(i == SQLITE_OK);
 }

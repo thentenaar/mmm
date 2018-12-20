@@ -50,7 +50,7 @@ static void *db_pgsql_connect(const char *host, const unsigned short port,
 	/* Connect to the db */
 	dbh = PQconnectdb(sbuf_get_buffer());
 	if (dbh && PQstatus(dbh) != CONNECTION_OK) {
-		ERROR_1("%s", PQerrorMessage(dbh));
+		error("[pgsql_connect] %s", PQerrorMessage(dbh));
 		PQfinish(dbh);
 		dbh = NULL;
 	}
@@ -138,7 +138,7 @@ ret:
 
 err_msg:
 	errmsg = PQerrorMessage(dbh);
-	if (errmsg) ERROR_1("query failed: %s", errmsg);
+	if (errmsg) error("query failed: %s", errmsg);
 
 err:
 	++retval;

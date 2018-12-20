@@ -155,7 +155,7 @@ static int handle_token(const char *start, size_t len, size_t *pos)
 		state.key_len = 0;
 		break;
 	default:
-		ERROR_1("invalid config token type %d", state.token);
+		error("invalid config token type %d", state.token);
 		++retval;
 		break;
 	}
@@ -308,13 +308,13 @@ err:
 	goto ret;
 
 invalid_identifier:
-	ERROR_3("config: [Line: %lu, Char: %lu] Invalid %s",
-	        line, pos - lpos + 1, token_to_string[state.token & 3]);
+	error("config: [Line: %lu, Char: %lu] Invalid %s",
+	      line, pos - lpos + 1, token_to_string[state.token & 3]);
 	goto ret;
 
 token_expected:
-	ERROR_3("config: [Line: %lu, Char: %lu] %s expected",
-	        line, pos - lpos + 1, token_to_string[state.token & 3]);
+	error("config: [Line: %lu, Char: %lu] %s expected",
+	      line, pos - lpos + 1, token_to_string[state.token & 3]);
 	goto ret;
 }
 
@@ -340,9 +340,9 @@ static int set_value_string(void *dest, size_t dest_size)
 	int retval = 0;
 
 	if (state.value_len >= dest_size) {
-		ERROR_4("config: %.*s.%.*s: value too long",
-		        (int)state.section_len, state.section,
-		        (int)state.key_len, state.key);
+		error("config: %.*s.%.*s: value too long",
+		      (int)state.section_len, state.section,
+		      (int)state.key_len, state.key);
 		++retval;
 		goto ret;
 	}
@@ -399,23 +399,23 @@ ret:
 	return retval;
 
 bad_dest_size:
-	ERROR_4("config: %.*s.%.*s: bad dest size",
-	        (int)state.section_len, state.section,
-	        (int)state.key_len, state.key);
+	error("config: %.*s.%.*s: bad dest size",
+	      (int)state.section_len, state.section,
+	      (int)state.key_len, state.key);
 err:
 	++retval;
 	goto ret;
 
 number_expected:
-	ERROR_4("config: %.*s.%.*s: number expected",
-	        (int)state.section_len, state.section,
-	        (int)state.key_len, state.key);
+	error("config: %.*s.%.*s: number expected",
+	      (int)state.section_len, state.section,
+	      (int)state.key_len, state.key);
 	goto err;
 
 result_out_of_range:
-	ERROR_5("config: %.*s.%.*s: %s",
-	        (int)state.section_len, state.section,
-	        (int)state.key_len, state.key, strerror(ERANGE));
+	error("config: %.*s.%.*s: %s",
+	      (int)state.section_len, state.section,
+	      (int)state.key_len, state.key, strerror(ERANGE));
 	goto err;
 }
 

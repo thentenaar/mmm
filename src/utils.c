@@ -6,11 +6,32 @@
  * See the LICENSE file for details.
  */
 
+#include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <string.h>
 #include <errno.h>
 #include <limits.h>
 #include "utils.h"
+
+/**
+ * \brief Log an error message
+ * \param[in] fmt Format string
+ */
+void error(const char *fmt, ...)
+{
+	va_list ap;
+
+	va_start(ap, fmt);
+#ifndef IN_TESTS
+	vfprintf(stderr, fmt, ap);
+	fprintf(stderr, "\n");
+#else
+	vsprintf(errbuf, fmt, ap);
+	strcat(errbuf, "\n");
+#endif
+	va_end(ap);
+}
 
 /**
  * Comparitor for bubblesort().

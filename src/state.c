@@ -97,12 +97,13 @@ void state_uninit(void)
  * This callback expects one row containing the
  * current state.
  */
-static int get_state_cb(void *UNUSED(userdata), int n_cols,
+static int get_state_cb(void *userdata, int n_cols,
                         char **fields, char **column_names)
 {
 	int i, retval = 0;
 	size_t len;
 	struct state *state;
+	(void)userdata;
 
 	/* Fill-in the next state */
 	if (states_loaded >= states_allocated) {
@@ -209,7 +210,7 @@ int state_cleanup_table(void)
 	if (sbuf_add_str(delete_state, SBUF_TSPACE, 0) ||
 	    sbuf_add_snum(states[states_allocated - 1].timestamp,
 	                  SBUF_SCOLON)) {
-		ERROR("Unable to build DELETE query");
+		error("Unable to build DELETE query");
 		++retval;
 	} else retval = db_query(sbuf_get_buffer(), NULL, NULL);
 
@@ -232,12 +233,12 @@ int state_add_revision(const char *rev)
 	i = strlen(rev);
 
 	if (!i) {
-		ERROR("revision string empty");
+		error("revision string empty");
 		goto err;
 	}
 
 	if (i >= sizeof(states[0].revision)) {
-		ERROR("revision string too long");
+		error("revision string too long");
 		goto err;
 	}
 
@@ -264,7 +265,7 @@ int state_add_revision(const char *rev)
 	                    SBUF_QUOTE | SBUF_COMMA, 0)
 	    || sbuf_add_str(states[0].previous,
 	                    SBUF_QUOTE | SBUF_RPAREN | SBUF_SCOLON, 0)) {
-		ERROR("Unable to build insert query");
+		error("Unable to build insert query");
 		++retval;
 	} else {
 		/* and send it to the database. */

@@ -60,8 +60,8 @@ void source_init(void)
 			continue;
 
 		if (sources[i]->init()) {
-			ERROR_1("failed to initialize '%s'",
-			        sources[i]->name);
+			error("failed to initialize '%s'",
+			      sources[i]->name);
 			sources[i] = NULL;
 		}
 	}
@@ -177,8 +177,8 @@ void source_uninit(void)
 			continue;
 
 		if (sources[i]->uninit()) {
-			ERROR_1("failed to uninitialize '%s'",
-			        sources[i]->name);
+			error("failed to uninitialize '%s'",
+			      sources[i]->name);
 		}
 	}
 }

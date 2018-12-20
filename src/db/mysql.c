@@ -91,7 +91,7 @@ static void *db_mysql_connect(const char *host, const unsigned short port,
 	}
 
 	if (!conn) {
-		ERROR_1("%s", mysql_error(dbh));
+		error("[mysql_connect] %s", mysql_error(dbh));
 		if (dbh) mysql_close(dbh);
 		dbh = NULL;
 	}
@@ -181,7 +181,7 @@ ret:
 
 err_msg:
 	errmsg = mysql_error(dbh);
-	if (errmsg) ERROR_1("query failed: %s", errmsg);
+	if (errmsg) error("query failed: %s", errmsg);
 
 err:
 	++retval;

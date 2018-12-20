@@ -85,7 +85,7 @@ malloc_err:
 	free(tmp);
 	free(m);
 	if (errno == ENOMEM)
-		ERROR_1("memory allocation failed: %s", strerror(ENOMEM));
+		error("memory allocation failed: %s", strerror(ENOMEM));
 	++err;
 	goto ret;
 }
@@ -131,8 +131,8 @@ static int scan_path_for_migrations(char ***migrations, size_t *size,
 		x = strtoul(d->d_name, &tmp, 0);
 		if (!tmp || tmp == d->d_name ||
 		    (x == ULONG_MAX && errno == ERANGE)) {
-			ERROR_1("warning: '%s' lacks a valid "
-			        "numeric designation", d->d_name);
+			error("warning: '%s' lacks a valid "
+			      "numeric designation", d->d_name);
 			continue;
 		}
 
@@ -142,8 +142,8 @@ static int scan_path_for_migrations(char ***migrations, size_t *size,
 
 		/* and fit in our buffer. */
 		if (sbuf_add_str(d->d_name, 0, pathbuf_pos)) {
-			ERROR_2("warning: path too long: '%s/%s'",
-			        pathbuf, d->d_name);
+			error("warning: path too long: '%s/%s'",
+			      pathbuf, d->d_name);
 			continue;
 		}
 
@@ -222,7 +222,7 @@ static char **file_find_migrations(const char *cur_rev,
 	else goto ret;
 
 	if (!*config.migration_path) {
-		ERROR("no migration_path specified");
+		error("no migration_path specified");
 		goto err;
 	}
 

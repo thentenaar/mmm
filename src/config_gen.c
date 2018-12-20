@@ -69,7 +69,7 @@ static int gen_config_file(const char *config_file, mode_t mode)
 	fd = open(config_file, O_CREAT | O_EXCL | O_TRUNC | O_WRONLY,
 	          mode);
 	if (fd < 0) {
-		ERROR_1("unable to create '%s'", config_file);
+		error("unable to create '%s'", config_file);
 		goto err;
 	}
 
@@ -127,7 +127,7 @@ int generate_config(const char *config_file, int config_only)
 
 	/* Get the current directory's mode bits. */
 	if (stat(".", &sbuf)) {
-		ERROR("unable to stat the current directory");
+		error("unable to stat the current directory");
 		goto err;
 	} else mode = S_IRWXU | (sbuf.st_mode & (S_IRWXG | S_IRWXO));
 
@@ -142,8 +142,8 @@ int generate_config(const char *config_file, int config_only)
 	 * bits as the current directory.
 	 */
 	if (mkdir(default_migration_path, mode)) {
-		ERROR_1("unable to create '%s' directory",
-		        default_migration_path);
+		error("unable to create '%s' directory",
+		      default_migration_path);
 		goto err;
 	}
 
