@@ -74,29 +74,29 @@
  * Simple error message macros.
  */
 #define ERROR(msg) do {\
-	fprintf(stderr, "%s: " msg "\n", __func__);\
+	fprintf(stderr, "%s:%u " msg "\n", __FILE__, __LINE__);\
 } while (0);
 
 #define ERROR_1(fmt, arg1) do {\
-	fprintf(stderr, "%s: " fmt "\n", __func__, (arg1));\
+	fprintf(stderr, "%s:%u " fmt "\n", __FILE__, __LINE__, (arg1));\
 } while (0);
 
 #define ERROR_2(fmt, arg1, arg2) do {\
-	fprintf(stderr, "%s: " fmt "\n", __func__, (arg1), (arg2));\
+	fprintf(stderr, "%s:%u " fmt "\n", __FILE__, __LINE__, (arg1), (arg2));\
 } while (0);
 
 #define ERROR_3(fmt, arg1, arg2, arg3) do {\
-	fprintf(stderr, "%s: " fmt "\n", __func__, (arg1),\
+	fprintf(stderr, "%s:%u " fmt "\n", __FILE__, __LINE__, (arg1),\
 	        (arg2), (arg3));\
 } while (0);
 
 #define ERROR_4(fmt, arg1, arg2, arg3, arg4) do {\
-	fprintf(stderr, "%s: " fmt "\n", __func__, (arg1),\
+	fprintf(stderr, "%s:%u " fmt "\n", __FILE__, __LINE__, (arg1),\
 	        (arg2), (arg3), (arg4));\
 } while (0);
 
 #define ERROR_5(fmt, arg1, arg2, arg3, arg4, arg5) do {\
-	fprintf(stderr, "%s: " fmt "\n", __func__, (arg1),\
+	fprintf(stderr, "%s:%u " fmt "\n", __FILE__, __LINE__, (arg1),\
 	        (arg2), (arg3), (arg4), (arg5));\
 } while (0);
 #else /* IN_TESTS */
