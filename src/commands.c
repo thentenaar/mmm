@@ -59,9 +59,8 @@ static int seed(const char *source, const char *current,
                 int argc, char *argv[])
 {
 	int retval = EXIT_SUCCESS;
-	const char *sfile = NULL;
+	const char *sfile = NULL, *srev = NULL;
 	size_t size;
-	(void)source;
 	(void)current;
 	(void)argc;
 
@@ -78,6 +77,15 @@ static int seed(const char *source, const char *current,
 	/* Create our state table */
 	if (state_create())
 		goto err;
+
+	if (!(srev = source_get_file_revision(source, argv[0])))
+		goto ret;
+
+	if (state_add_revision(srev)) {
+		state_destroy();
+		error("seed: unable to set current revision");
+		goto err;
+	}
 
 ret:
 	unmap_file();

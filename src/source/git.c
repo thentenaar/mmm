@@ -56,6 +56,7 @@ static const git_strarray migration_strs = {
 
 /* The local HEAD revision ID */
 static char local_head[50];
+static char file_rev[50];
 
 /**
  * A list of migrations corresponding to
@@ -490,8 +491,12 @@ static char **git_find_migrations(const char *cur_rev,
 	if (git_revwalk_new(&walk, repo) != GIT_OK ||
 	    git_revwalk_push(walk, git_object_id(head)) != GIT_OK ||
 	    (prev &&
-	     git_revwalk_hide(walk, git_object_id(prev)) != GIT_OK))
+	     git_revwalk_hide(walk, git_object_id(prev)) != GIT_OK)) {
+		if (giterr_last() && giterr_last()->message &&
+		    strstr(giterr_last()->message, "not a committish"))
+			giterr_clear();
 		goto ret;
+	}
 
 	git_revwalk_sorting(walk, GIT_SORT_TOPOLOGICAL |
 	                    GIT_SORT_REVERSE);
@@ -553,6 +558,46 @@ static const char *git_get_head(void)
 }
 
 /**
+ * Get the latest revision of a particular file
+ *
+ * \param[in] file   File name.
+ * \return The lastest revision of the file as a string, or NULL if the
+ *         revision isn't known.
+ */
+static const char *git_get_file_revision(const char *file)
+{
+	git_repository *repo = NULL;
+	git_object *rev = NULL;
+	char *tmprev = NULL;
+
+	if (!file || !(tmprev = malloc(strlen(file) + 6)))
+		goto err;
+	sprintf(tmprev, "HEAD:%s", file);
+
+	if (git_repository_open(&repo, config.repo_path) != GIT_OK)
+		goto err;
+
+	if (git_revparse_single(&rev, repo, tmprev) != GIT_OK)
+		goto err;
+
+	*file_rev = '\0';
+	if (rev && git_object_id(rev)) {
+		git_oid_tostr(file_rev, sizeof(file_rev),
+		              git_object_id(rev));
+	}
+
+	git_object_free(rev);
+	git_repository_free(repo);
+	free(tmprev);
+	return !*file_rev ? NULL : file_rev;
+
+err:
+	if (tmprev) free(tmprev);
+	if (repo)   git_repository_free(repo);
+	return NULL;
+}
+
+/**
  * Get the base path for migrations.
  *
  * \return The base path for migrations.
@@ -594,6 +639,8 @@ struct source_backend_vtable git_vtable = {
 	git_init,
 	git_find_migrations,
 	git_get_head,
+	git_get_file_revision,
 	git_get_migration_path,
 	git_uninit
 };
+

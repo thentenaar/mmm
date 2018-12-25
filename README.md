@@ -158,7 +158,7 @@ in which migrations should be applied. With this source, the files
 need not have a numeric designation, and they will be applied in
 the order in which they were committed to the repository. Revisions
 correspond to the actual SHA1 hash for the commit at which the
-current aet of migrations was performed.
+current set of migrations was performed.
 
 The ``git`` source requires [libgit2](https://libgit2.github.com).
 

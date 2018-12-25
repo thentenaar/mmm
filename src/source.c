@@ -141,6 +141,28 @@ err:
 }
 
 /**
+ * Get the latest revision of a particular file
+ *
+ * \param[in] source Name of the source to use.
+ * \param[in] file   File name.
+ * \return The lastest revision of the file as a string, or NULL if the
+ *         revision isn't known.
+ */
+const char *source_get_file_revision(const char *source, const char *file)
+{
+	size_t i;
+
+	if (!source || !file) goto err;
+
+	i = find_backend(source, strlen(source));
+	if (i != SIZE_MAX && sources[i]->get_file_revision)
+		return sources[i]->get_file_revision(file);
+
+err:
+	return NULL;
+}
+
+/**
  * Get the base path for migrations.
  *
  * \param[in] source Name of the source to use.

@@ -51,6 +51,15 @@ struct source_backend_vtable {
 	const char *(*get_head)(void);
 
 	/**
+	 * Get the latest revision of a particular file
+	 *
+	 * \param[in] file   File name.
+	 * \return The lastest revision of the file as a string, or NULL if the
+	 *         revision isn't known.
+	 */
+	const char *(*get_file_revision)(const char *file);
+
+	/**
 	 * Get the base path for migrations.
 	 *
 	 * \return The base path for migrations.

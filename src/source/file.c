@@ -324,6 +324,7 @@ struct source_backend_vtable file_vtable = {
 	file_init,
 	file_find_migrations,
 	file_get_head,
+	NULL, /* get_file_revision */
 	file_get_migration_path,
 	file_uninit
 };

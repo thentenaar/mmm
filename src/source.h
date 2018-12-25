@@ -53,6 +53,16 @@ char **source_find_migrations(const char *source, const char *cur_rev,
 const char *source_get_local_head(const char *source);
 
 /**
+ * Get the latest revision of a particular file
+ *
+ * \param[in] source Name of the source to use.
+ * \param[in] file   File name.
+ * \return The lastest revision of the file as a string, or NULL if the
+ *         revision isn't known.
+ */
+const char *source_get_file_revision(const char *source, const char *file);
+
+/**
  * Get the base path for migrations.
  *
  * \param[in] source Name of the source to use.
