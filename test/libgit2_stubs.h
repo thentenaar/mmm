@@ -281,6 +281,11 @@ static struct git_err *giterr_last(void)
 	return giterr_last_returns;
 }
 
+static void giterr_clear(void)
+{
+	giterr_last_returns = NULL;
+}
+
 static int git_revparse_single(git_object **out, git_repository *repo,
                                const char *rev)
 {

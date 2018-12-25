@@ -36,6 +36,8 @@ static char **source_find_migrations(const char *UNUSED(source),
                                      const char *UNUSED(prev_rev),
                                      size_t *size);
 static const char *source_get_local_head(const char *UNUSED(source));
+static const char *source_get_file_revision(const char *UNUSED(source),
+                                            const char *UNUSED(file));
 static const char *source_get_migration_path(const char *UNUSED(source));
 static int migration_upgrade(const char *UNUSED(path));
 static int migration_downgrade(const char *UNUSED(path));
@@ -206,6 +208,12 @@ static char **source_find_migrations(const char *UNUSED(source),
 	++source_find_migrations_called;
 	if (size) *size = source_find_migrations_returns_size;
 	return source_find_migrations_returns;
+}
+
+static const char *source_get_file_revision(const char *UNUSED(source),
+                                            const char *UNUSED(file))
+{
+	return NULL;
 }
 
 static const char *source_get_local_head(const char *UNUSED(source))

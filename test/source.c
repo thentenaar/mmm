@@ -86,6 +86,7 @@ const struct source_backend_vtable backend_without_init = {
 	NULL, /* backend_init */
 	NULL, /* backend_find_migrations */
 	NULL, /* backend_get_head  */
+	NULL, /* backend_get_file_revision */
 	NULL, /* backend_get_migration_path */
 	NULL  /* backend_uninit, */
 };
@@ -96,6 +97,7 @@ const struct source_backend_vtable backend_with_init = {
 	backend_init,
 	backend_find_migrations,
 	backend_get_head,
+	NULL,
 	backend_get_migration_path,
 	backend_uninit
 };
