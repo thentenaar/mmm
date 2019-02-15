@@ -278,12 +278,12 @@ err:
 /**
  * Get the latest local revision.
  *
- * \return The latest local revision as a string, or NULL if
+ * \return The latest local revision as a string, or "0" if
  *         the local revision couldn't be determined.
  */
 static const char *file_get_head(void)
 {
-	return (*local_head ? local_head : NULL);
+	return (*local_head ? local_head : "0");
 }
 
 /**
