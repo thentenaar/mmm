@@ -287,6 +287,18 @@ static const char *file_get_head(void)
 }
 
 /**
+ * Get the latest revision of a particular file
+ *
+ * \param[in] file   File name.
+ * \return "0" since this is only used for the seed file.
+ */
+static const char *file_get_file_revision(const char *file)
+{
+	(void)file;
+	return "0";
+}
+
+/**
  * Get the base path for migrations.
  *
  * \return The base path for migrations.
@@ -324,7 +336,7 @@ struct source_backend_vtable file_vtable = {
 	file_init,
 	file_find_migrations,
 	file_get_head,
-	NULL, /* get_file_revision */
+	file_get_file_revision,
 	file_get_migration_path,
 	file_uninit
 };

@@ -151,7 +151,8 @@ The ``file`` source looks at the files in the specified
 files should be applied. This source assumes that all migrations
 begin with a numeric designation, for example: ``1-init.sql``;
 and will be arranged in numerical order. This is the default
-source. Revisions correspond to the files' designations.
+source. Revisions correspond to the files' designations. The seed file
+will be added as revision "0", thus migrations must start from 1.
 
 The ``git`` source uses a git repository for determining the order
 in which migrations should be applied. With this source, the files
