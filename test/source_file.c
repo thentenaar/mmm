@@ -89,7 +89,8 @@ static void test_file_init_uninit(void)
 static void test_file_get_head(void)
 {
 	local_head[0] = '\0';
-	CU_ASSERT_PTR_NULL(file_get_head());
+	CU_ASSERT_PTR_NOT_NULL(file_get_head());
+	CU_ASSERT_TRUE(file_get_head()[0] == '0');
 	memcpy(local_head, "1", 2);
 	CU_ASSERT_PTR_NOT_NULL(file_get_head());
 }
