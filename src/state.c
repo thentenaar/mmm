@@ -8,6 +8,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <time.h>
 
 #include "db.h"
@@ -273,6 +274,7 @@ int state_add_revision(const char *rev)
 	}
 
 ret:
+	sleep(1);
 	return retval;
 
 err:
