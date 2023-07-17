@@ -19,10 +19,18 @@
  * from success and failure for run_command().
  *
  * The values of EXIT_SUCCESS and EXIT_FAILURE may be 0 and 1, or they
- * may not be. Thus, we try to find a constant that doeesn't conflict
+ * may not be. Thus, we try to find a constant that doesn't conflict
  * with either.
  */
-#define COMMAND_INVALID_ARGS (((EXIT_SUCCESS + EXIT_FAILURE) << 1) + 2)
+#define COMMAND_INVALID_ARGS (((EXIT_SUCCESS + EXIT_FAILURE) << 2) + 2)
+
+/**
+ * \def COMMAND_NOT_FOUND
+ *
+ * A constant for the purpose of differentiating "command not found"
+ * from success and failure for run_command().
+ */
+#define COMMAND_NOT_FOUND (((EXIT_SUCCESS + EXIT_FAILURE) << 2) + 3)
 
 /**
  * Run a command.

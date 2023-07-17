@@ -16,10 +16,10 @@ struct source_backend_vtable {
 	const char *name;
 
 	/**
- 	 * Callback for processing configuration values.
- 	 *
- 	 * These should be handled with the CONFIG_SET_* macros.
- 	 */
+	 * Callback for processing configuration values.
+	 *
+	 * These should be handled with the CONFIG_SET_* macros.
+	 */
 	config_callback_t config;
 
 	/**
@@ -43,11 +43,11 @@ struct source_backend_vtable {
 	                          size_t *size);
 
 	/**
- 	 * Get the latest local revision.
- 	 *
- 	 * \return The latest local revision as a string, or NULL if
- 	 *         the local revision couldn't be determined.
- 	 */
+	 * Get the latest local revision.
+	 *
+	 * \return The latest local revision as a string, or NULL if
+	 *         the local revision couldn't be determined.
+	 */
 	const char *(*get_head)(void);
 
 	/**

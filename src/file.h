@@ -11,22 +11,21 @@
 #define FILE_H
 
 /**
- * Read a file into our buffer.
+ * Map a file into memory
  *
- * This will fail for any file which has a size too large
- * to hold in a off_t. The files this program uses shouldn't
- * be that large anyhow.
- *
- * \param[in]  path Path to the file to be mapped.
- * \param[out] size Size of the file (in bytes.)
+ * \param[in]  path   Path to the file to be mapped.
+ * \param[out] size   Size of the file (in bytes.)
  * \return A pointer to the file buffer. On error, NULL will
  *         be returned, and size will be set to 0.
  */
 char *map_file(const char *path, size_t *size);
 
 /**
- * Unmap the previously mapped file.
+ * Unmap a previously mapped file
+ *
+ * \param[in] mem Base address of the file mapping
+ * \param[in] len Length of the file
  */
-void unmap_file(void);
+void unmap_file(char *mem, size_t len);
 
 #endif /* FILE_H */

@@ -60,10 +60,10 @@ static void rtrim(char *s)
 static int run_migration(const char *path, int mode)
 {
 	size_t size;
-	char *buf, *tmp;
+	char *mem, *buf, *tmp;
 	int retval = 1;
 
-	buf = map_file(path, &size);
+	mem = buf = map_file(path, &size);
 	if (!buf) goto ret;
 
 	/* Check for our desired query */
@@ -87,7 +87,7 @@ static int run_migration(const char *path, int mode)
 	if (*buf) retval = db_query(buf, NULL, NULL);
 
 ret:
-	unmap_file();
+	unmap_file(mem, size);
 	return retval;
 }
 

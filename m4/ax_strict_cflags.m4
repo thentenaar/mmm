@@ -38,6 +38,8 @@ AC_DEFUN([AX_STRICT_CFLAGS],[
 			-Wno-format-nonliteral dnl
 			-Wno-long-long dnl
 			-Wno-format dnl
+			-Wno-extra-semi-stmt dnl
+			-Wno-documentation dnl
 			-Qunused-arguments dnl
 		])
 	],[	dnl Assume GCC
@@ -57,6 +59,7 @@ AC_DEFUN([AX_STRICT_CFLAGS],[
 			-Wcast-qual dnl
 			-Wredundant-decls dnl
 			-Wbad-function-cast dnl
+			-Wno-variadic-macros dnl
 		])
 
 		dnl -Wformat-security was included in gcc 3.0.4

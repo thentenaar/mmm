@@ -16,73 +16,80 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+
+#if defined(HAVE_SYS_MMAN_H) && defined(_POSIX_MAPPED_FILES) && _POSIX_MAPPED_FILES != -1
+#include <sys/mman.h>
+#endif
 #endif /* IN_TESTS */
 
 #include "utils.h"
 #include "file.h"
 
-/**
- * Trying to read() more than SSIZE_MAX is undefined.
- * It's also quite unlikely that we would ever want
- * a buffer that big.
- */
-#define FILEBUFSIZ (64 * 1024)
-#if FILEBUFSIZ >= SSIZE_MAX
-#error "File buffer cannot be SSIZE_MAX or larger"
-#endif
+#if !defined(HAVE_SYS_MMAN_H) || !defined(_POSIX_MAPPED_FILES) || _POSIX_MAPPED_FILES == -1
+#define MAP_PRIVATE 0
+#define PROT_READ   0
+#define MAP_FAILED  ((void *)-1)
 
-static char filebuf[FILEBUFSIZ];
-static int file_mapped = 0;
-static size_t file_size = 0;
-
-/**
- * Read a file into the static file buffer.
- *
- * \param[in] fd   File descriptor to read from.
- * \param[in] size Length of data to read.
- * \return 0 on success, non-zero on error.
- */
-static int read_file(int fd, size_t size)
+static void *mmap(void *addr, size_t length, int prot, int flags, int fd,
+                  off_t offset)
 {
-	int retval = 0;
+	char *buf = NULL;
 	size_t bytes_read = 0;
 	ssize_t br;
+	struct stat sbuf;
 
-	/* Ensure we're at the start of the file */
-	if (lseek(fd, 0, SEEK_SET) < 0)
+	(void)addr;
+	(void)prot;
+	(void)flags;
+	(void)offset;
+
+	if (lseek(fd, 0, SEEK_SET) < 0) {
+		errno = EBADF;
 		goto err;
+	}
+
+	if (fstat(fd, &sbuf) || !S_ISREG(sbuf.st_mode)) {
+		errno = EACCES;
+		goto err;
+	}
+
+	if (!(buf = malloc(length))) {
+		errno = ENOMEM;
+		goto err;
+	}
 
 	do {
 		/* Read what we can */
-		errno = 0;
-		br = read(fd, filebuf + bytes_read, size - bytes_read);
-		if (br < 0) {
+		if ((br = read(fd, buf + bytes_read, length - bytes_read)) <= 0) {
 			if (errno == EINTR)
 				continue;
 			goto err;
 		}
 
-		if (br == 0) goto err;
 		bytes_read += (size_t)br;
-	} while (bytes_read < size);
+	} while (bytes_read < length);
 
-ret:
-	return retval;
+	return buf;
 
 err:
-	++retval;
-	goto ret;
+	if (buf) free(buf);
+	return MAP_FAILED;
 }
 
+static int munmap(void *addr, size_t length)
+{
+	(void)length;
+	if (addr != MAP_FAILED)
+		free(addr);
+	return 0;
+}
+#endif /* !HAVE_SYS_MMAN_H || !_POSIX_MAPPED_FILES */
+
 /**
- * Read a file into our buffer.
+ * Map a file into memory
  *
- * This will fail for any file which has a size too large
- * to hold in a off_t. The files this program uses shouldn't
- * be that large anyhow.
- *
- * \param[in]  path Path to the file to be mapped.
- * \param[out] size Size of the file (in bytes.)
+ * \param[in]  path   Path to the file to be mapped.
+ * \param[out] size   Size of the file (in bytes.)
  * \return A pointer to the file buffer. On error, NULL will
  *         be returned, and size will be set to 0.
  */
@@ -92,46 +99,23 @@ char *map_file(const char *path, size_t *size)
 	struct stat sbuf;
 	char *retval = NULL;
 
-	if (!path || !size) goto ret;
-
-	/* Ensure another file isn't still mapped. */
-	if (file_mapped) {
-		error("failed to map '%s': "
-		      "another file is already mapped", path);
+	sbuf.st_size = 0;
+	if (!path || !size)
 		goto ret;
-	}
 
 	/* Open the file */
 	errno = 0;
 	fd = open(path, O_RDONLY);
-	if (fd < 0) goto err;
-
-	/* We don't map 0-length files */
-	if (fstat(fd, &sbuf) || !sbuf.st_size)
+	if (fd < 0 || fstat(fd, &sbuf) || !sbuf.st_size)
 		goto err;
 
-	/* Don't map non-regular files either */
-	if (!S_ISREG(sbuf.st_mode)) {
-		error("'%s' is not a regular file", path);
-		goto ret;
-	}
-
-	/* Ensure the file will fit in our buffer */
-	if ((size_t)sbuf.st_size >= FILEBUFSIZ) {
-		error("bad size for '%s' (%ld bytes)", path,
-		        sbuf.st_size);
-		goto ret;
-	}
-
-	/* Read the file */
-	++file_mapped;
-	file_size = (size_t)sbuf.st_size;
-	if (read_file(fd, (size_t)sbuf.st_size))
+	/* Map the file */
+	retval = mmap(NULL, (size_t)sbuf.st_size, MAP_PRIVATE, PROT_READ, fd, 0);
+	if (retval == MAP_FAILED)
 		goto err;
-	retval = filebuf;
 
 ret:
-	if (size) *size = file_size;
+	if (size) *size = (size_t)sbuf.st_size;
 	if (fd > -1) close(fd);
 	return retval;
 
@@ -139,20 +123,20 @@ err:
 	if (errno) {
 		error("failed to map '%s': %s", path, strerror(errno));
 	} else error("failed to map '%s'", path);
-	if (file_mapped) file_mapped = 0;
-	file_size = 0;
-	goto ret;
+	if (fd > -1) close(fd);
+	if (size) *size = 0;
+	return NULL;
 }
 
 /**
- * Unmap the previously mapped file.
+ * Unmap a previously mapped file
+ *
+ * \param[in] mem Base address of the file mapping
+ * \param[in] len Length of the file
  */
-void unmap_file(void)
+void unmap_file(char *mem, size_t len)
 {
-	if (!file_mapped)
-		return;
-
-	memset(filebuf, 0, file_size);
-	file_mapped = 0;
-	file_size = 0;
+	if (mem && len)
+		munmap(mem, len);
 }
+

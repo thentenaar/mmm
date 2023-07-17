@@ -32,10 +32,10 @@ struct db_driver_vtable {
 	const int has_transactional_ddl;
 
 	/**
- 	 * Callback for processing configuration values.
- 	 *
- 	 * These should be handled with the CONFIG_SET_* macros.
- 	 */
+	 * Callback for processing configuration values.
+	 *
+	 * These should be handled with the CONFIG_SET_* macros.
+	 */
 	config_callback_t config;
 
 	/**

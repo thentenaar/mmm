@@ -163,13 +163,6 @@ current set of migrations was performed.
 
 The ``git`` source requires [libgit2](https://libgit2.github.com).
 
-Limitations
------------
-
-``mmm`` can only handle files smaller than 64 KB by default. To raise
-this limit, increase ``FILEBUFSIZ`` in [src/file.c](src/file.c)
-accordingly.
-
 Caveats
 -------
 

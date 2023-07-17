@@ -186,10 +186,6 @@ In case of upgrading the schema, \fBmmm\fR will automatically roll back
 any applied migrations in the current batch when an error occurs if the
 RDBMS lacks transactional DDL support.
 
-.SH LIMITATIONS
-\fBmmm\fR can only handle files smaller than 64 KB by default. To raise
-this limit, increase \fBFILEBUFSIZ\fR in src/file.c.
-
 .SH BUGS
 None known.
 

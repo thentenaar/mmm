@@ -59,8 +59,9 @@ static int seed(const char *source, const char *current,
                 int argc, char *argv[])
 {
 	int retval = EXIT_SUCCESS;
-	const char *sfile = NULL, *srev = NULL;
-	size_t size;
+	char *sfile = NULL;
+	const char *srev = NULL;
+	size_t size = 0;
 	(void)current;
 	(void)argc;
 
@@ -88,7 +89,7 @@ static int seed(const char *source, const char *current,
 	}
 
 ret:
-	unmap_file();
+	unmap_file(sfile, size);
 	return retval;
 
 err:
@@ -402,8 +403,10 @@ int run_command(const char *source, int argc, char *argv[])
 	}
 
 	/* Return if we didn't find the command */
-	if (i >= N_COMMANDS)
+	if (i >= N_COMMANDS) {
+		retval = COMMAND_NOT_FOUND;
 		goto ret;
+	}
 
 	/* Make sure we have sufficient args */
 	if (argc - 1 < commands[i].argc)

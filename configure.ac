@@ -19,11 +19,7 @@ m4_include([m4/ax_check_compile_flag.m4])
 m4_include([m4/ax_require_defined.m4])
 m4_include([m4/ax_strict_cflags.m4])
 m4_include([m4/ax_set_prefix.m4])
-m4_include([m4/ax_check_mysql.m4])
-m4_include([m4/ax_check_pgsql.m4])
-m4_include([m4/ax_check_sqlite3.m4])
-m4_include([m4/ax_check_libgit2.m4])
-m4_include([m4/ax_check_cunit.m4])
+m4_include([m4/ax_check_dep.m4])
 
 dnl Check for standard programs
 AC_PROG_CC
@@ -33,9 +29,8 @@ AC_PROG_MKDIR_P
 AC_PROG_INSTALL
 
 dnl Check for headers
-AC_HEADER_STDC
 AC_HEADER_DIRENT
-AC_CHECK_HEADERS([errno.h limits.h fcntl.h])
+AC_CHECK_HEADERS([errno.h limits.h fcntl.h unistd.h sys/stat.h sys/types.h sys/mman.h])
 
 dnl Check compiler characteristics
 AC_C_CONST
@@ -43,9 +38,9 @@ AC_TYPE_SIZE_T
 
 dnl Check for Databases
 AX_SET_PREFIX
-AX_CHECK_SQLITE3
-AX_CHECK_PGSQL
-AX_CHECK_MYSQL
+AX_CHECK_DEP([sqlite3], [sqlite3.h], [sqlite3], [sqlite3_open], [nonfatal])
+AX_CHECK_DEP([pgsql], [libpq-fe.h], [pq], [PQconnectdb], [nonfatal])
+AX_CHECK_DEP([mysql], [mysql.h], [mysql], [mysql_library_init], [nonfatal])
 
 dnl Ensure at least one supported database is available
 AS_IF([test "$have_sqlite3" != "yes"], [
@@ -57,10 +52,10 @@ AS_IF([test "$have_mysql"   != "yes"], [
 ])
 
 dnl Check for libgit2
-AX_CHECK_LIBGIT2
+AX_CHECK_DEP([libgit2], [git2.h], [git2], [git_libgit2_init], [nonfatal])
 
-dnl Check for CUnit, gcovr, and indent
-AX_CHECK_CUNIT
+dnl Check for check, gcovr, and indent
+AX_CHECK_DEP([check], [check.h], [check], [srunner_run_all], [nonfatal])
 AC_PATH_PROG([GCOVR],[gcovr])
 AC_PATH_PROG([INDENT],[indent])
 

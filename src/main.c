@@ -93,7 +93,7 @@ static int load_config(void)
 {
 	int retval = 0;
 	size_t size;
-	const char *conf;
+	char *conf;
 
 	/* Load the config file */
 	conf = map_file(config.file, &size);
@@ -120,7 +120,7 @@ static int load_config(void)
 		config.history = 3;
 
 ret:
-	unmap_file();
+	unmap_file(conf, size);
 	return retval;
 err:
 	++retval;
