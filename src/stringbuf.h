@@ -140,4 +140,18 @@ int sbuf_add_param_str(const char *param, const char *value);
  */
 int sbuf_add_param_num(const char *param, unsigned long value);
 
+/**
+ * Add a signed numeric parameter to the string buffer.
+ *
+ * This will add:
+ *     param=value
+ *
+ * to the buffer, adding a leading space between parameters.
+ *
+ * \param[in] param  Parameter name
+ * \param[in] value  Signed numeric value
+ * \return 0 on success, 1 on failure.
+ */
+int sbuf_add_param_snum(const char *param, long value);
+
 #endif /* STRINGBUF_H */

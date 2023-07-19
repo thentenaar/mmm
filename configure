@@ -652,11 +652,11 @@ ac_subst_vars='LTLIBOBJS
 LIBOBJS
 INDENT
 GCOVR
-have_check
 have_libgit2
 have_mysql
 have_pgsql
 have_sqlite3
+have_check
 INSTALL_DATA
 INSTALL_SCRIPT
 INSTALL_PROGRAM
@@ -712,11 +712,11 @@ SHELL'
 ac_subst_files=''
 ac_user_opts='
 enable_option_checking
+with_check
 with_sqlite3
 with_pgsql
 with_mysql
 with_libgit2
-with_check
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1343,7 +1343,7 @@ if test -n "$ac_init_help"; then
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
-  --with-sqlite3=PATH     set the path for sqlite3
+  --with-check=PATH       set the path for check
 
 Some influential environment variables:
   CC          C compiler command
@@ -4225,6 +4225,154 @@ fi
 
 
 
+	have_check=no
+
+# Check whether --with-check was given.
+if test ${with_check+y}
+then :
+  withval=$with_check; with_check=$withval
+else $as_nop
+  with_check=yes
+
+fi
+
+
+	if test "$with_check" != "no"
+then :
+
+		have_check=yes
+		save_cppflags=$CPPFLAGS
+		save_ldflags=$LDFLAGS
+		save_libs=$LIBS
+
+				if test "$with_check" == "yes"
+then :
+  with_check=$prefix
+fi
+		if test "$with_check" != "$prefix"
+then :
+
+			CPPFLAGS="$CPPFLAGS -I$with_check/include"
+
+fi
+		ac_fn_c_check_header_compile "$LINENO" "check.h" "ac_cv_header_check_h" "$ac_includes_default"
+if test "x$ac_cv_header_check_h" = xyes
+then :
+
+else $as_nop
+  have_check=no
+fi
+
+
+				if test "$have_check" != "no"
+then :
+
+			if test "$with_check" != "$prefix"
+then :
+
+				LDFLAGS="$LDFLAGS -L$with_check/lib"
+
+fi
+			{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for srunner_run_all in -lcheck" >&5
+printf %s "checking for srunner_run_all in -lcheck... " >&6; }
+if test ${ac_cv_lib_check_srunner_run_all+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lcheck  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.
+   The 'extern "C"' is for builds by C++ compilers;
+   although this is not generally supported in C code supporting it here
+   has little cost and some practical benefit (sr 110532).  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char srunner_run_all (void);
+int
+main (void)
+{
+return srunner_run_all ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  ac_cv_lib_check_srunner_run_all=yes
+else $as_nop
+  ac_cv_lib_check_srunner_run_all=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_check_srunner_run_all" >&5
+printf "%s\n" "$ac_cv_lib_check_srunner_run_all" >&6; }
+if test "x$ac_cv_lib_check_srunner_run_all" = xyes
+then :
+  printf "%s\n" "#define HAVE_LIBCHECK 1" >>confdefs.h
+
+  LIBS="-lcheck $LIBS"
+
+else $as_nop
+  have_check=no
+fi
+
+
+fi
+
+		if test "$have_check" == "no"
+then :
+
+			CPPFLAGS=$save_cppflags
+			LDFLAGS=$save_ldflags
+			LIBS=$save_libs
+			if test "xnonfatal" != "x"
+then :
+
+else $as_nop
+  { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+printf "%s\n" "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "check not found.
+See \`config.log' for more details" "$LINENO" 5; }
+
+fi
+
+else $as_nop
+
+			if test "x$with_check" != "x$prefix"
+then :
+
+				if test "x$RPATHS" != "x"
+then :
+
+					RPATH="$RPATH:$with_check/lib"
+
+else $as_nop
+
+					RPATH="$with_check/lib"
+
+fi
+
+fi
+
+fi
+
+fi
+
+
+
+
+LIBS=
+
+
+
 	have_sqlite3=no
 
 # Check whether --with-sqlite3 was given.
@@ -4822,152 +4970,6 @@ fi
 
 fi
 
-
-
-
-
-
-
-	have_check=no
-
-# Check whether --with-check was given.
-if test ${with_check+y}
-then :
-  withval=$with_check; with_check=$withval
-else $as_nop
-  with_check=yes
-
-fi
-
-
-	if test "$with_check" != "no"
-then :
-
-		have_check=yes
-		save_cppflags=$CPPFLAGS
-		save_ldflags=$LDFLAGS
-		save_libs=$LIBS
-
-				if test "$with_check" == "yes"
-then :
-  with_check=$prefix
-fi
-		if test "$with_check" != "$prefix"
-then :
-
-			CPPFLAGS="$CPPFLAGS -I$with_check/include"
-
-fi
-		ac_fn_c_check_header_compile "$LINENO" "check.h" "ac_cv_header_check_h" "$ac_includes_default"
-if test "x$ac_cv_header_check_h" = xyes
-then :
-
-else $as_nop
-  have_check=no
-fi
-
-
-				if test "$have_check" != "no"
-then :
-
-			if test "$with_check" != "$prefix"
-then :
-
-				LDFLAGS="$LDFLAGS -L$with_check/lib"
-
-fi
-			{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for srunner_run_all in -lcheck" >&5
-printf %s "checking for srunner_run_all in -lcheck... " >&6; }
-if test ${ac_cv_lib_check_srunner_run_all+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lcheck  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.
-   The 'extern "C"' is for builds by C++ compilers;
-   although this is not generally supported in C code supporting it here
-   has little cost and some practical benefit (sr 110532).  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char srunner_run_all (void);
-int
-main (void)
-{
-return srunner_run_all ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"
-then :
-  ac_cv_lib_check_srunner_run_all=yes
-else $as_nop
-  ac_cv_lib_check_srunner_run_all=no
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_check_srunner_run_all" >&5
-printf "%s\n" "$ac_cv_lib_check_srunner_run_all" >&6; }
-if test "x$ac_cv_lib_check_srunner_run_all" = xyes
-then :
-  printf "%s\n" "#define HAVE_LIBCHECK 1" >>confdefs.h
-
-  LIBS="-lcheck $LIBS"
-
-else $as_nop
-  have_check=no
-fi
-
-
-fi
-
-		if test "$have_check" == "no"
-then :
-
-			CPPFLAGS=$save_cppflags
-			LDFLAGS=$save_ldflags
-			LIBS=$save_libs
-			if test "xnonfatal" != "x"
-then :
-
-else $as_nop
-  { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-printf "%s\n" "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "check not found.
-See \`config.log' for more details" "$LINENO" 5; }
-
-fi
-
-else $as_nop
-
-			if test "x$with_check" != "x$prefix"
-then :
-
-				if test "x$RPATHS" != "x"
-then :
-
-					RPATH="$RPATH:$with_check/lib"
-
-else $as_nop
-
-					RPATH="$with_check/lib"
-
-fi
-
-fi
-
-fi
-
-fi
 
 
 

@@ -10,7 +10,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
-#include <CUnit/CUnit.h>
+
+#include <check.h>
 #include "tests.h"
 
 /* from test_runner.c */
@@ -58,12 +59,13 @@ static void backend_config(void)
 }
 
 static char **backend_find_migrations(const char *cur_rev,
-                                      const char *UNUSED(prev_rev),
+                                      const char *prev_rev,
                                       size_t *size)
 {
+	(void)prev_rev;
 	backend_find_migrations_called++;
-	CU_ASSERT_TRUE(!!cur_rev);
-	CU_ASSERT_TRUE(!!size);
+	ck_assert(!!cur_rev);
+	ck_assert(!!size);
 	*size = 12345;
 	return (char **)1234;
 }
@@ -107,342 +109,318 @@ const struct source_backend_vtable backend_with_init = {
  * Test that source_init() skips a backend without an
  * init callback.
  */
-static void source_init_skips_backends_without_init(void)
+START_TEST(source_init_skips_backends_without_init)
 {
-	errbuf[0] = '\0';
+	*errbuf = '\0';
 	backend_init_called = 0;
 	sources[0] = &backend_without_init;
 	source_init();
-	CU_ASSERT_TRUE(!!sources[0]);
-	CU_ASSERT_EQUAL(errbuf[0], '\0');
-	CU_ASSERT_FALSE(backend_init_called);
+
+	ck_assert(!*errbuf);
+	ck_assert(!backend_init_called);
 }
+END_TEST
 
 /**
  * That that we get the correct error message if source_init()
  * fails to initialize a backend.
  */
-static void source_init_fails_to_init_backend(void)
+START_TEST(source_init_fails_to_init_backend)
 {
 	const char *err = "failed to initialize 'init'\n";
-	errbuf[0] = '\0';
+
+	*errbuf = '\0';
 	sources[0] = &backend_with_init;
 	backend_init_called = 1;
 	source_init();
-	CU_ASSERT_EQUAL(backend_init_called, 2);
-	CU_ASSERT_FALSE(sources[0]);
-	CU_ASSERT_NOT_EQUAL_FATAL(errbuf[0], '\0');
-	CU_ASSERT_EQUAL_FATAL(strlen(errbuf), strlen(err));
-	CU_ASSERT_STRING_EQUAL(errbuf, err);
+
+	ck_assert_int_eq(backend_init_called, 2);
+	ck_assert_str_eq(errbuf, err);
 }
+END_TEST
 
 /**
  * Test that source_get_config_cb() returns NULL if
  * passed invalid parameters.
  */
-static void source_get_config_cb_invalid_params(void)
+START_TEST(source_get_config_cb_invalid_params)
 {
-	memset(sources, 0, sizeof(sources));
+	memset(sources, 0, sizeof sources);
 	sources[0] = &backend_with_init;
-	CU_ASSERT_TRUE(!source_get_config_cb(NULL, 1));
-	CU_ASSERT_TRUE(!source_get_config_cb("init", 0));
+	ck_assert(!source_get_config_cb(NULL, 1));
+	ck_assert(!source_get_config_cb("init", 0));
 }
+END_TEST
 
 /**
  * Test that source_get_config_cb() fails if no backends
  * are usable.
  */
-static void source_get_config_cb_no_usable_backends(void)
+START_TEST(source_get_config_cb_no_usable_backends)
 {
-	memset(sources, 0, sizeof(sources));
-	CU_ASSERT_TRUE(!source_get_config_cb("init", 4));
+	memset(sources, 0, sizeof sources);
+	ck_assert(!source_get_config_cb("init", 4));
 }
+END_TEST
 
 /**
  * Test that source_get_config_cb() returns the specified
  * backend's config callback.
  */
-static void test_source_get_config_cb(void)
+START_TEST(test_source_get_config_cb)
 {
-	memset(sources, 0, sizeof(sources));
+	memset(sources, 0, sizeof sources);
 	sources[0] = &backend_with_init;
 	sources[1] = &backend_without_init;
-	CU_ASSERT_EQUAL(source_get_config_cb("init", 4), backend_config);
-	CU_ASSERT_EQUAL(source_get_config_cb("no-init", 7), NULL);
+	ck_assert(source_get_config_cb("init", 4) == backend_config);
+	ck_assert(!source_get_config_cb("no-init", 7));
 }
+END_TEST
 
 /**
  * Test that source_find_migrations() returns NULL if
  * passed invalid parameters.
  */
-static void source_find_migrations_invalid_params(void)
+START_TEST(source_find_migrations_invalid_params)
 {
 	size_t size = SIZE_MAX >> 1;
 	const char *head = "head";
 	const char *prev = "prev";
 
 	backend_find_migrations_called = 0;
-	memset(sources, 0, sizeof(sources));
+	memset(sources, 0, sizeof sources);
 	sources[0] = &backend_with_init;
 
 	/* !source */
-	CU_ASSERT_PTR_NULL(source_find_migrations(NULL, head, prev, &size));
-	CU_ASSERT_EQUAL(size, 0);
-	CU_ASSERT_FALSE(backend_find_migrations_called);
+	ck_assert_ptr_null(source_find_migrations(NULL, head, prev, &size));
+	ck_assert_uint_eq(size, 0);
+	ck_assert(!backend_find_migrations_called);
 
 	/* !size */
-	CU_ASSERT_PTR_NULL(source_find_migrations("init", head, prev, NULL));
-	CU_ASSERT_EQUAL(size, 0);
-	CU_ASSERT_FALSE(backend_find_migrations_called);
+	ck_assert_ptr_null(source_find_migrations("init", head, prev, NULL));
+	ck_assert_uint_eq(size, 0);
+	ck_assert(!backend_find_migrations_called);
 }
+END_TEST
 
 /**
  * Test that source_find_migrations() fails if no backends
  * are usable.
  */
-static void source_find_migrations_no_usable_backends(void)
+START_TEST(source_find_migrations_no_usable_backends)
 {
 	size_t size = SIZE_MAX >> 1;
 	const char *head = "head";
 
 	backend_find_migrations_called = 0;
-	memset(sources, 0, sizeof(sources));
+	memset(sources, 0, sizeof sources);
 
-	CU_ASSERT_PTR_NULL(source_find_migrations("init", head, NULL, &size));
-	CU_ASSERT_EQUAL(size, 0);
-	CU_ASSERT_FALSE(backend_find_migrations_called);
+	ck_assert_ptr_null(source_find_migrations("init", head, NULL, &size));
+	ck_assert_uint_eq(size, 0);
+	ck_assert(!backend_find_migrations_called);
 }
+END_TEST
 
 /**
  * Test that source_find_migrations() calls the specified
  * backend's callback, and returns the result.
  */
-static void test_source_find_migrations(void)
+START_TEST(test_source_find_migrations)
 {
 	char **m;
 	size_t size = SIZE_MAX >> 1;
 	const char *head = "head";
 
 	backend_find_migrations_called = 0;
-	memset(sources, 0, sizeof(sources));
+	memset(sources, 0, sizeof sources);
 	sources[0] = &backend_without_init;
 	sources[1] = &backend_with_init;
 
 	m = source_find_migrations("init", head, NULL, &size);
-	CU_ASSERT_EQUAL(m, (char **)1234);
-	CU_ASSERT_EQUAL(size, 12345);
-	CU_ASSERT_TRUE(backend_find_migrations_called);
+	ck_assert_ptr_eq(m, (char **)1234);
+	ck_assert_uint_eq(size, 12345);
+	ck_assert(backend_find_migrations_called);
 }
+END_TEST
 
 /**
  * Test that source_get_local_head() returns NULL if
  * passed invalid parameters.
  */
-static void source_get_local_head_invalid_params(void)
+START_TEST(source_get_local_head_invalid_params)
 {
 	backend_get_head_called = 0;
-	memset(sources, 0, sizeof(sources));
+	memset(sources, 0, sizeof sources);
 	sources[0] = &backend_with_init;
 
 	/* !source */
-	CU_ASSERT_FALSE(source_get_local_head(NULL));
-	CU_ASSERT_FALSE(source_get_local_head("\0"));
-	CU_ASSERT_FALSE(backend_get_head_called);
+	ck_assert_ptr_null(source_get_local_head(NULL));
+	ck_assert_ptr_null(source_get_local_head("\0"));
+	ck_assert(!backend_get_head_called);
 }
+END_TEST
 
 /**
  * Test that source_get_local_head() fails if no backends
  * are usable.
  */
-static void source_get_local_head_no_usable_backends(void)
+START_TEST(source_get_local_head_no_usable_backends)
 {
 	backend_get_head_called = 0;
-	memset(sources, 0, sizeof(sources));
-	CU_ASSERT_FALSE(source_get_local_head("init"));
-	CU_ASSERT_FALSE(backend_get_head_called);
+	memset(sources, 0, sizeof sources);
+	ck_assert_ptr_null(source_get_local_head("init"));
+	ck_assert(!backend_get_head_called);
 }
+END_TEST
 
 /**
  * Test that source_get_local_head() calls the specified
  * backend's callback, and returns the result.
  */
-static void test_source_get_local_head(void)
+START_TEST(test_source_get_local_head)
 {
 	const char *head;
 	backend_get_head_called = 0;
-	memset(sources, 0, sizeof(sources));
+	memset(sources, 0, sizeof sources);
 	sources[0] = &backend_without_init;
 	sources[1] = &backend_with_init;
 
-	head = source_get_local_head("init");
-	CU_ASSERT_TRUE_FATAL(!!head);
-	CU_ASSERT_STRING_EQUAL(head, "head");
-	CU_ASSERT_TRUE(backend_get_head_called);
+	ck_assert_ptr_nonnull(head = source_get_local_head("init"));
+	ck_assert_str_eq(head, "head");
+	ck_assert(backend_get_head_called);
 }
+END_TEST
 
 /**
  * Test that source_get_migration_path() returns NULL if
  * passed invalid parameters.
  */
-static void source_get_migration_path_invalid_params(void)
+START_TEST(source_get_migration_path_invalid_params)
 {
 	backend_get_migration_path_called = 0;
-	memset(sources, 0, sizeof(sources));
+	memset(sources, 0, sizeof sources);
 	sources[0] = &backend_with_init;
 
 	/* !source */
-	CU_ASSERT_FALSE(source_get_migration_path(NULL));
-	CU_ASSERT_FALSE(source_get_migration_path("\0"));
-	CU_ASSERT_FALSE(backend_get_migration_path_called);
+	ck_assert_ptr_null(source_get_migration_path(NULL));
+	ck_assert_ptr_null(source_get_migration_path("\0"));
+	ck_assert(!backend_get_migration_path_called);
 }
+END_TEST
 
 /**
  * Test that source_get_migration_path() fails if no backends
  * are usable.
  */
-static void source_get_migration_path_no_usable_backends(void)
+START_TEST(source_get_migration_path_no_usable_backends)
 {
 	backend_get_migration_path_called = 0;
-	memset(sources, 0, sizeof(sources));
-	CU_ASSERT_FALSE(source_get_migration_path("init"));
-	CU_ASSERT_FALSE(backend_get_migration_path_called);
+	memset(sources, 0, sizeof sources);
+	ck_assert_ptr_null(source_get_migration_path("init"));
+	ck_assert(!backend_get_migration_path_called);
 }
+END_TEST
 
 /**
  * Test that source_get_migration_path() calls the specified
  * backend's callback, and returns the result.
  */
-static void test_source_get_migration_path(void)
+START_TEST(test_source_get_migration_path)
 {
 	const char *path;
 	backend_get_migration_path_called = 0;
-	memset(sources, 0, sizeof(sources));
+	memset(sources, 0, sizeof sources);
 	sources[0] = &backend_without_init;
 	sources[1] = &backend_with_init;
 
-	path = source_get_migration_path("init");
-	CU_ASSERT_TRUE_FATAL(!!path);
-	CU_ASSERT_STRING_EQUAL(path, ".");
-	CU_ASSERT_TRUE(backend_get_migration_path_called);
+	ck_assert_ptr_nonnull(path = source_get_migration_path("init"));
+	ck_assert_str_eq(path, ".");
+	ck_assert(backend_get_migration_path_called);
 }
+END_TEST
 
 /**
  * Test that source_uninit() skips a backend without an
  * uninit callback.
  */
-static void source_uninit_skips_backends_without_uninit(void)
+START_TEST(source_uninit_skips_backends_without_uninit)
 {
-	errbuf[0] = '\0';
+	*errbuf = '\0';
 	backend_uninit_called = 0;
-	memset(sources, 0, sizeof(sources));
+	memset(sources, 0, sizeof sources);
 	sources[0] = &backend_without_init;
 
 	source_uninit();
-	CU_ASSERT_TRUE(!!sources[0]);
-	CU_ASSERT_EQUAL(errbuf[0], '\0');
-	CU_ASSERT_FALSE(backend_uninit_called);
+	ck_assert(!*errbuf);
+	ck_assert(!backend_uninit_called);
 }
+END_TEST
 
 /**
  * That that we get the correct error message if source_uninit()
  * fails to uninitialize a backend.
  */
-static void source_uninit_fails_to_uninit_backend(void)
+START_TEST(source_uninit_fails_to_uninit_backend)
 {
 	const char *err = "failed to uninitialize 'init'\n";
 
-	errbuf[0] = '\0';
-	memset(sources, 0, sizeof(sources));
+	*errbuf = '\0';
+	memset(sources, 0, sizeof sources);
 	sources[1] = &backend_with_init;
 	backend_uninit_called = 1;
 
 	source_uninit();
-	CU_ASSERT_EQUAL(backend_uninit_called, 2);
-	CU_ASSERT_FALSE(sources[0]);
-	CU_ASSERT_NOT_EQUAL_FATAL(errbuf[0], '\0');
-	CU_ASSERT_EQUAL_FATAL(strlen(errbuf), strlen(err));
-	CU_ASSERT_STRING_EQUAL(errbuf, err);
+	ck_assert_int_eq(backend_uninit_called, 2);
+	ck_assert_str_eq(errbuf, err);
 }
+END_TEST
 
-static CU_TestInfo source_tests[] = {
-	{
-		"source_init - skips backends without init()",
-		source_init_skips_backends_without_init
-	},
-	{
-		"source_init - fails to init backend",
-		source_init_fails_to_init_backend
-	},
-	{
-		"source_get_config_cb - invalid params",
-		source_get_config_cb_invalid_params
-	},
-	{
-		"source_get_config_cb - no usable backends",
-		source_get_config_cb_no_usable_backends
-	},
-	{
-		"source_get_config_cb works",
-		test_source_get_config_cb
-	},
-	{
-		"source_find_migrations - invalid params",
-		source_find_migrations_invalid_params
-	},
-	{
-		"source_find_migrations - no usable backends",
-		source_find_migrations_no_usable_backends
-	},
-	{
-		"source_find_migrations works",
-		test_source_find_migrations
-	},
-	{
-		"source_get_local_head - invalid params",
-		source_get_local_head_invalid_params
-	},
-	{
-		"source_get_local_head - no usable backends",
-		source_get_local_head_no_usable_backends
-	},
-	{
-		"source_get_local_head works",
-		test_source_get_local_head
-	},
-	{
-		"source_get_migration_path - invalid params",
-		source_get_migration_path_invalid_params
-	},
-	{
-		"source_get_migration_path - no usable backends",
-		source_get_migration_path_no_usable_backends
-	},
-	{
-		"source_get_migration_path works",
-		test_source_get_migration_path
-	},
-	{
-		"source_uninit - skips backends without uninit()",
-		source_uninit_skips_backends_without_uninit
-	},
-	{
-		"source_uninit - fails to uninit backend",
-		source_uninit_fails_to_uninit_backend
-	},
-
-	CU_TEST_INFO_NULL
-};
-
-void source_add_suite(void)
+Suite *source_suite(void)
 {
-	size_t i = 0;
-	CU_pSuite suite;
+	Suite *s;
+	TCase *t;
 
-	suite = CU_add_suite("Source Layer", NULL, NULL);
-	while (source_tests[i].pName) {
-		CU_add_test(suite, source_tests[i].pName,
-		            source_tests[i].pTestFunc);
-		i++;
-	}
+	s = suite_create("Source");
+	t = tcase_create("source_init");
+	tcase_add_test(t, source_init_skips_backends_without_init);
+	tcase_add_test(t, source_init_fails_to_init_backend);
+	tcase_set_timeout(t, 1);
+	suite_add_tcase(s, t);
+
+	t = tcase_create("source_get_config_cb");
+	tcase_add_test(t, source_get_config_cb_invalid_params);
+	tcase_add_test(t, source_get_config_cb_no_usable_backends);
+	tcase_add_test(t, test_source_get_config_cb);
+	tcase_set_timeout(t, 1);
+	suite_add_tcase(s, t);
+
+	t = tcase_create("source_find_migrations");
+	tcase_add_test(t, source_find_migrations_invalid_params);
+	tcase_add_test(t, source_find_migrations_no_usable_backends);
+	tcase_add_test(t, test_source_find_migrations);
+	tcase_set_timeout(t, 1);
+	suite_add_tcase(s, t);
+
+	t = tcase_create("source_get_local_head");
+	tcase_add_test(t, source_get_local_head_invalid_params);
+	tcase_add_test(t, source_get_local_head_no_usable_backends);
+	tcase_add_test(t, test_source_get_local_head);
+	tcase_set_timeout(t, 1);
+	suite_add_tcase(s, t);
+
+	t = tcase_create("source_get_migration_path");
+	tcase_add_test(t, source_get_migration_path_invalid_params);
+	tcase_add_test(t, source_get_migration_path_no_usable_backends);
+	tcase_add_test(t, test_source_get_migration_path);
+	tcase_set_timeout(t, 1);
+	suite_add_tcase(s, t);
+
+	t = tcase_create("source_uninit");
+	tcase_add_test(t, source_uninit_skips_backends_without_uninit);
+	tcase_add_test(t, source_uninit_fails_to_uninit_backend);
+	tcase_set_timeout(t, 1);
+	suite_add_tcase(s, t);
+
+	return s;
 }
 

@@ -12,7 +12,8 @@
 #include <limits.h>
 #include <errno.h>
 #include <ctype.h>
-#include <CUnit/CUnit.h>
+#include <check.h>
+
 #include "tests.h"
 
 /* from test_runner.c */
@@ -50,9 +51,11 @@ static void source_config_proc(void)
 	return;
 }
 
-static config_callback_t source_get_config_cb(const char * UNUSED(start),
-                                              size_t UNUSED(end))
+static config_callback_t source_get_config_cb(const char *start,
+                                              size_t end)
 {
+	(void)start;
+	(void)end;
 	return source_config_proc;
 }
 
@@ -74,372 +77,268 @@ static config_callback_t db_get_config_cb(const char *start, size_t end)
 static void check_state_valid_for_cb(void)
 {
 	/* Ensure we have a valid section, key, and value */
-	CU_ASSERT_PTR_NOT_NULL(state.section);
-	CU_ASSERT_PTR_NOT_NULL(state.key);
-	CU_ASSERT_PTR_NOT_NULL(state.value);
-	CU_ASSERT_NOT_EQUAL(state.section_len, 0);
-	CU_ASSERT_NOT_EQUAL(state.key_len, 0);
-	CU_ASSERT_NOT_EQUAL(state.value_len, 0);
+	ck_assert_ptr_nonnull(state.section);
+	ck_assert_ptr_nonnull(state.key);
+	ck_assert_ptr_nonnull(state.value);
+	ck_assert_uint_ne(state.section_len, 0);
+	ck_assert_uint_ne(state.key_len, 0);
+	ck_assert_uint_ne(state.value_len, 0);
 }
 
 /**
  * Test that config_init() actually sets the main_config
  * address correctly.
  */
-static void test_config_init(void)
+START_TEST(test_config_init)
 {
 	main_config_called = 0;
 	main_config = NULL;
 	config_init(main_config_proc);
-	CU_ASSERT_EQUAL(main_config, main_config_proc);
+	ck_assert(main_config == main_config_proc);
 }
-
-/**
- * Test that the config parser uses the main callback
- * when it encounters the main section.
- */
-static void test_main_section_callback(void)
-{
-	const char *str = "[main]\n";
-
-	memset(&state, 0, sizeof(state));
-	db_called = db_called_for_main = 0;
-	main_config = main_config_proc;
-	CU_ASSERT_EQUAL(0, parse_config(str, strlen(str)));
-
-	/* Ensure the section was parsed correctly */
-	CU_ASSERT_EQUAL(state.section_len, 4);
-	CU_ASSERT_FALSE(memcmp(state.section, "main", 4));
-
-	/* Check for the callback */
-	CU_ASSERT_EQUAL(state.cb, main_config_proc);
-	CU_ASSERT_FALSE(db_called_for_main);
-
-	/* If no main callback is set, check that db gets called. */
-	memset(&state, 0 , sizeof(state));
-	main_config = NULL;
-	db_called = db_called_for_main = 0;
-	CU_ASSERT_EQUAL(0, parse_config(str, strlen(str)));
-
-	/* Ensure the section was parsed correctly */
-	CU_ASSERT_EQUAL(state.section_len, 4);
-	CU_ASSERT_FALSE(memcmp(state.section, "main", 4));
-
-	/* Check for the callback */
-	CU_ASSERT_EQUAL(state.cb, db_config_proc);
-	CU_ASSERT_TRUE(db_called_for_main);
-}
-
-/**
- * Test that the config parser first calls the db
- * lookup function, and then the source lookup
- * function when it encounters a section other
- * than main.
- */
-static void test_non_main_callbacks(void)
-{
-	const char *str = "[test]\n";
-
-	memset(&state, 0, sizeof(state));
-	main_config = main_config_proc;
-	db_called = 0;
-	CU_ASSERT_EQUAL(0, parse_config(str, strlen(str)));
-
-	/* Ensure the section was parsed correctly */
-	CU_ASSERT_EQUAL(state.section_len, 4);
-	CU_ASSERT_FALSE(memcmp(state.section, "test", 4));
-
-	/* Check for the callback */
-	CU_ASSERT_EQUAL(state.cb, db_config_proc);
-	++db_called;
-
-	/* Now, check the source callback */
-	memset(&state, 0, sizeof(state));
-	parse_config(str, strlen(str));
-	CU_ASSERT_EQUAL(state.cb, source_config_proc);
-}
+END_TEST
 
 /**
  * Test that config_set_value() returns 0 if passed invalid
  * parameters, and that the supplied dest buffer is not
  * modified.
  */
-static void config_set_value_params(void)
+START_TEST(config_set_value_params)
 {
-	int i;
 	size_t dest_len;
 
-	errbuf[0] = '\0';
-	memset(&state, 0, sizeof(state));
+	*errbuf = '\0';
+	memset(&state, 0, sizeof state);
 	state.section     = "section";
 	state.section_len = 7;
 	state.key_len     = 4;
 	state.key         = "test";
 	state.value       = "value";
-	state.value_len = 5;
-	dest_len = state.key_len + 1;
+	state.value_len   = 5;
+	dest_len          = state.key_len + 1;
 
 	/* !key_len */
-	i = config_set_value(0, errbuf, dest_len, "test", 0);
-	CU_ASSERT_EQUAL(i, 1);
+	ck_assert_int_eq(config_set_value(0, errbuf, dest_len, "test", 0), 1);
 
 	/* state.key_len (4) != key_len (3)  */
-	i = config_set_value(0, errbuf, dest_len, "test", 3);
-	CU_ASSERT_EQUAL(i, 1);
+	ck_assert_int_eq(config_set_value(0, errbuf, dest_len, "test", 3), 1);
 
 	/* !dest */
-	i = config_set_value(0, NULL, dest_len, "test", 4);
-	CU_ASSERT_EQUAL(i, 1);
+	ck_assert_int_eq(config_set_value(0, NULL, dest_len, "test", 4), 1);
 
 	/* !expected_key */
-	i = config_set_value(0, errbuf, dest_len, NULL, 4);
-	CU_ASSERT_EQUAL(i, 1);
+	ck_assert_int_eq(config_set_value(0, errbuf, dest_len, NULL, 4), 1);
 
 	/* !dest_size */
-	i = config_set_value(0, errbuf, 0, "test", 4);
-	CU_ASSERT_EQUAL(i, 1);
+	ck_assert_int_eq(config_set_value(0, errbuf, 0, "test", 4), 1);
 
 	/* !state.value_len */
 	state.value_len = 0;
-	i = config_set_value(0, errbuf, dest_len, "test", 4);
-	CU_ASSERT_EQUAL(i, 1);
+	ck_assert_int_eq(config_set_value(0, errbuf, dest_len, "test", 4), 1);
 
 	/* !state.key_len */
 	state.value_len = 5;
 	state.key_len   = 0;
-	i = config_set_value(0, errbuf, dest_len, "test", 4);
-	CU_ASSERT_EQUAL(i, 1);
+	ck_assert_int_eq(config_set_value(0, errbuf, dest_len, "test", 4), 1);
 
 	/* !state.key */
 	state.key_len = 4;
-	state.key = NULL;
-	i = config_set_value(0, errbuf, dest_len, "test", 4);
-	CU_ASSERT_EQUAL(i, 1);
+	state.key     = NULL;
+	ck_assert_int_eq(config_set_value(0, errbuf, dest_len, "test", 4), 1);
 
 	/* !state.value */
 	state.key_len = 4;
 	state.key     = state.value;
 	state.value   = NULL;
-	i = config_set_value(0, errbuf, dest_len, "test", 4);
-	CU_ASSERT_EQUAL(i, 1);
+	ck_assert_int_eq(config_set_value(0, errbuf, dest_len, "test", 4), 1);
 
 	/* Ensure nothing wrote to errbuf */
-	CU_ASSERT_EQUAL(errbuf[0], '\0');
+	ck_assert(!*errbuf);
 }
+END_TEST
 
 /**
  * Test that config_set_value() returns 0 if the
  * expected_key and state.key have the same length
  * but different content.
  */
-static void config_set_value_wrong_key(void)
+START_TEST(config_set_value_wrong_key)
 {
-	int i;
 	size_t dest_len;
 
-	errbuf[0] = '\0';
-	memset(&state, 0, sizeof(state));
+	*errbuf = '\0';
+	memset(&state, 0, sizeof state);
 	state.section     = "section";
 	state.section_len = 7;
 	state.key_len     = 4;
 	state.key         = "test";
 	state.value       = "value";
 	state.value_len   = 5;
-	dest_len = state.key_len + 1;
+	dest_len          = state.key_len + 1;
 
 	/* "xxx" != "test" */
-	i = config_set_value(CONFIG_STRING, errbuf, dest_len, "xxxx", 4);
-	CU_ASSERT_EQUAL(i, 1);
+	ck_assert_int_eq(config_set_value(CONFIG_STRING, errbuf, dest_len, "xxxx", 4), 1);
 
 	/* Ensure nothing wrote to errbuf */
-	CU_ASSERT_EQUAL(errbuf[0], '\0');
+	ck_assert(!*errbuf);
 }
+END_TEST
 
 /**
  * Test that the correct error message is generated if dest is too
  * small to hold the contents of state.value.
  */
-static void set_value_string_value_too_big(void)
+START_TEST(config_set_value_string_too_big)
 {
-	int i;
 	size_t dest_len;
 	const char *err = "config: section.test: value too long\n";
 
-	errbuf[0] = '\0';
-	memset(&state, 0, sizeof(state));
+	*errbuf = '\0';
+	memset(&state, 0, sizeof state);
 	state.section     = "section";
 	state.section_len = 7;
 	state.key_len     = 4;
 	state.key         = "test";
 	state.value       = "value";
 	state.value_len   = 5;
-	dest_len = state.value_len - 1;
+	dest_len          = state.value_len - 1;
 
-	i = config_set_value(CONFIG_STRING, errbuf, dest_len, "test", 4);
-	CU_ASSERT_EQUAL(i, 1);
-
-	/* Ensure the expected error message was generated. */
-	CU_ASSERT_NOT_EQUAL_FATAL(errbuf[0], '\0');
-	CU_ASSERT_EQUAL_FATAL(strlen(errbuf), strlen(err));
-	CU_ASSERT_STRING_EQUAL(errbuf, err);
+	ck_assert_int_eq(config_set_value(CONFIG_STRING, errbuf, dest_len, "test", 4), 1);
+	ck_assert_str_eq(errbuf, err);
 }
+END_TEST
 
 /**
  * Test that set_value_string() correctly copies state.value
  * to the destination.
  */
-static void test_set_value_string(void)
+START_TEST(config_set_value_string)
 {
-	int i;
 	size_t dest_len;
 	const char *value = "value";
 
-	errbuf[0] = '\0';
-	memset(&state, 0, sizeof(state));
+	*errbuf = '\0';
+	memset(&state, 0, sizeof state);
 	state.section     = "section";
 	state.section_len = 7;
 	state.key_len     = 4;
 	state.key         = "test";
 	state.value       = value;
 	state.value_len   = strlen(value);
-	dest_len = state.value_len + 1;
+	dest_len          = state.value_len + 1;
 
 	/* strlen(value) == strlen(dest) */
-	i = config_set_value(CONFIG_STRING, errbuf, dest_len, "test", 4);
-	CU_ASSERT_EQUAL(i, 0);
+	ck_assert_int_eq(config_set_value(CONFIG_STRING, errbuf, dest_len, "test", 4), 0);
 
 	/* Ensure value was copied. */
-	CU_ASSERT_NOT_EQUAL_FATAL(errbuf[0], '\0');
-	CU_ASSERT_EQUAL_FATAL(strlen(errbuf), strlen(value));
-	CU_ASSERT_STRING_EQUAL(errbuf, value);
+	ck_assert_str_eq(errbuf, value);
 
 	/* strlen(dest) > strlen(value) */
 	memset(errbuf, 0, dest_len + 5);
 	dest_len <<= 1;
-	i = config_set_value(CONFIG_STRING, errbuf, dest_len, "test", 4);
-	CU_ASSERT_EQUAL(i, 0);
+	ck_assert_int_eq(config_set_value(CONFIG_STRING, errbuf, dest_len, "test", 4), 0);
 
 	/* Ensure the value was copied. */
-	CU_ASSERT_NOT_EQUAL_FATAL(errbuf[0], '\0');
-	CU_ASSERT_EQUAL_FATAL(strlen(errbuf), strlen(value));
-	CU_ASSERT_STRING_EQUAL(errbuf, value);
+	ck_assert_str_eq(errbuf, value);
 }
+END_TEST
 
 /**
  * Test that the correct error message is generated if value
  * doesn't represent a number.
  */
-static void test_set_value_number_not_numeric(void)
+START_TEST(config_set_value_number_not_numeric)
 {
-	int i;
 	size_t dest_len;
 	const char *err = "config: section.test: number expected\n";
 
-	errbuf[0] = '\0';
-	memset(&state, 0, sizeof(state));
+	*errbuf = '\0';
+	memset(&state, 0, sizeof state);
 	state.section     = "section";
 	state.section_len = 7;
 	state.key_len     = 4;
 	state.key         = "test";
 	state.value       = "value";
 	state.value_len   = 5;
-	dest_len = state.value_len;
+	dest_len          = state.value_len;
 
-	i = config_set_value(CONFIG_NUMBER, errbuf, dest_len, "test", 4);
-	CU_ASSERT_EQUAL(i, 1);
-
-	/* Ensure the expected error message was generated. */
-	CU_ASSERT_NOT_EQUAL_FATAL(errbuf[0], '\0');
-	CU_ASSERT_EQUAL_FATAL(strlen(errbuf), strlen(err));
-	CU_ASSERT_STRING_EQUAL(errbuf, err);
+	ck_assert_int_eq(config_set_value(CONFIG_NUMBER, errbuf, dest_len, "test", 4), 1);
+	ck_assert_str_eq(errbuf, err);
 }
+END_TEST
 
 /**
  * Test that the correct error message is generated if value
  * represents a number that is negative, or that cannot be
  * parsed as a base 10 integer by strtoul().
  */
-static void set_value_number_not_unsigned(void)
+START_TEST(config_set_value_number_not_unsigned)
 {
-	int i;
 	size_t dest_len;
 	const char *err = "config: section.test: number expected\n";
 
-	errbuf[0] = '\0';
-	memset(&state, 0, sizeof(state));
+	*errbuf = '\0';
+	memset(&state, 0, sizeof state);
 	state.section     = "section";
 	state.section_len = 7;
 	state.key_len     = 4;
 	state.key         = "test";
 	state.value       = "-1234";
 	state.value_len   = 5;
-	dest_len = sizeof(unsigned long);
+	dest_len          = sizeof(unsigned long);
 
 	/* Check a negative number */
-	i = config_set_value(CONFIG_NUMBER, errbuf, dest_len, "test", 4);
-	CU_ASSERT_EQUAL(i, 1);
-
-	/* Ensure the expected error message was generated. */
-	CU_ASSERT_NOT_EQUAL_FATAL(errbuf[0], '\0');
-	CU_ASSERT_EQUAL_FATAL(strlen(errbuf), strlen(err));
-	CU_ASSERT_STRING_EQUAL(errbuf, err);
+	ck_assert_int_eq(config_set_value(CONFIG_NUMBER, errbuf, dest_len, "test", 4), 1);
+	ck_assert_str_eq(errbuf, err);
 
 	/* Check a non-base-10 number too */
-	errbuf[0] = '\0';
+	*errbuf     = '\0';
 	state.value = "0x234";
-	i = config_set_value(CONFIG_NUMBER, errbuf, dest_len, "test", 4);
-	CU_ASSERT_EQUAL(i, 1);
-
-	/* Ensure the expected error message was generated. */
-	CU_ASSERT_NOT_EQUAL_FATAL(errbuf[0], '\0');
-	CU_ASSERT_EQUAL_FATAL(strlen(errbuf), strlen(err));
-	CU_ASSERT_STRING_EQUAL(errbuf, err);
+	ck_assert_int_eq(config_set_value(CONFIG_NUMBER, errbuf, dest_len, "test", 4), 1);
+	ck_assert_str_eq(errbuf, err);
 }
+END_TEST
 
 /**
  * Test that the correct error message is generated if value
  * represents a number that is negative, or that cannot be
  * parsed as a base 10 integer by strtoul().
  */
-static void set_value_number_out_of_range(void)
+START_TEST(config_set_value_number_out_of_range)
 {
-	int i;
 	size_t dest_len;
 	char value[255];
 
-	errbuf[0] = '\0';
+	*errbuf = '\0';
 	sprintf(value, "%lu1\n", ULONG_MAX);
-	memset(&state, 0, sizeof(state));
+	memset(&state, 0, sizeof state);
 	state.section     = "section";
 	state.section_len = 7;
 	state.key_len     = 4;
 	state.key         = "test";
 	state.value       = value;
 	state.value_len   = strlen(value);
-	dest_len = sizeof(unsigned long);
+	dest_len          = sizeof(unsigned long);
 
 	/* The number should be larger than ULONG_MAX. */
-	i = config_set_value(CONFIG_NUMBER, errbuf, dest_len, "test", 4);
-	CU_ASSERT_EQUAL(i, 1);
+	ck_assert_int_eq(config_set_value(CONFIG_NUMBER, errbuf, dest_len, "test", 4), 1);
 
 	/* Ensure the expected error message was generated. */
 	sprintf(value, "config: section.test: %s\n", strerror(ERANGE));
-	CU_ASSERT_NOT_EQUAL_FATAL(errbuf[0], '\0');
-	CU_ASSERT_EQUAL_FATAL(strlen(errbuf), strlen(value));
-	CU_ASSERT_STRING_EQUAL(errbuf, value);
+	ck_assert_str_eq(errbuf, value);
 }
+END_TEST
 
 /**
  * Test that the correct error message is generated if the
  * size of dest is larger than sizeof(unsigned long).
  */
-static void set_value_number_bad_dest_size(void)
+START_TEST(config_set_value_number_bad_dest_size)
 {
-	int i;
 	const char *err = "config: section.test: bad dest size\n";
 
-	errbuf[0] = '\0';
-	memset(&state, 0, sizeof(state));
+	*errbuf = '\0';
+	memset(&state, 0, sizeof state);
 	state.section     = "section";
 	state.section_len = 7;
 	state.key_len     = 4;
@@ -448,29 +347,23 @@ static void set_value_number_bad_dest_size(void)
 	state.value_len   = 5;
 
 	/* > sizeof(unsigned long) */
-	i = sizeof(unsigned long) << 1;
-	i = config_set_value(CONFIG_NUMBER, errbuf, (size_t)i, "test", 4);
-	CU_ASSERT_EQUAL(i, 1);
-
-	/* Ensure the expected error message was generated. */
-	CU_ASSERT_NOT_EQUAL_FATAL(errbuf[0], '\0');
-	CU_ASSERT_EQUAL_FATAL(strlen(errbuf), strlen(err));
-	CU_ASSERT_STRING_EQUAL(errbuf, err);
+	ck_assert_int_eq(config_set_value(CONFIG_NUMBER, errbuf, sizeof(unsigned long) << 1, "test", 4), 1);
+	ck_assert_str_eq(errbuf, err);
 }
+END_TEST
 
 /**
  * Test that set_value_number() works correctly.
  */
-static void test_set_value_number(void)
+START_TEST(config_set_value_number)
 {
-	int i;
-	unsigned long value;
-	unsigned int  ivalue;
-	unsigned short svalue;
 	size_t stval;
+	unsigned ivalue;
+	unsigned short svalue;
+	unsigned long value;
 
-	errbuf[0] = '\0';
-	memset(&state, 0, sizeof(state));
+	*errbuf = '\0';
+	memset(&state, 0, sizeof state);
 	state.section     = "section";
 	state.section_len = 7;
 	state.key_len     = 4;
@@ -478,102 +371,74 @@ static void test_set_value_number(void)
 	state.value       = "12345";
 	state.value_len   = 5;
 
-	/* == sizeof(char) */
-	i = config_set_value(CONFIG_NUMBER, errbuf, sizeof(char),
-	                     "test", 4);
-	CU_ASSERT_EQUAL(i, 0);
-	CU_ASSERT_EQUAL(errbuf[0], (char)12345);
+	/* char */
+	ck_assert_int_eq(config_set_value(CONFIG_NUMBER, errbuf, 1, "test", 4), 0);
+	ck_assert(*errbuf == (char)12345);
 
-	/* == sizeof(unsigned int) */
-	i = config_set_value(CONFIG_NUMBER, errbuf, sizeof(ivalue),
-	                     "test", 4);
-	CU_ASSERT_EQUAL(i, 0);
-	memcpy(&ivalue, errbuf, sizeof(unsigned int));
-	CU_ASSERT_EQUAL(ivalue, 12345);
+	/* unsigned */
+	ck_assert_int_eq(config_set_value(CONFIG_NUMBER, &ivalue, sizeof ivalue, "test", 4), 0);
+	ck_assert_int_eq(ivalue, 12345);
 
-	/* == sizeof(unsigned short) */
-	i = config_set_value(CONFIG_NUMBER, errbuf, sizeof(svalue),
-	                     "test", 4);
-	CU_ASSERT_EQUAL(i, 0);
-	memcpy(&svalue, errbuf, sizeof(unsigned short));
-	CU_ASSERT_EQUAL(svalue, 12345);
+	/* unsigned short */
+	ck_assert_int_eq(config_set_value(CONFIG_NUMBER, &svalue, sizeof svalue, "test", 4), 0);
+	ck_assert_int_eq(svalue, 12345);
 
-	/* == sizeof(size_t) */
-	i = config_set_value(CONFIG_NUMBER, errbuf, sizeof(stval),
-	                     "test", 4);
-	CU_ASSERT_EQUAL(i, 0);
-	memcpy(&stval, errbuf, sizeof(size_t));
-	CU_ASSERT_EQUAL(stval, 12345);
+	/* unsigned long */
+	ck_assert_int_eq(config_set_value(CONFIG_NUMBER, &value, sizeof value, "test", 4), 0);
+	ck_assert_uint_eq(value, 12345);
 
-	/* == sizeof(unsigned long) */
-	i = config_set_value(CONFIG_NUMBER, errbuf, sizeof(value),
-	                     "test", 4);
-	CU_ASSERT_EQUAL(i, 0);
-	memcpy(&value, errbuf, sizeof(unsigned long));
-	CU_ASSERT_EQUAL(value, 12345);
+	/* size_t */
+	ck_assert_int_eq(config_set_value(CONFIG_NUMBER, &stval, sizeof stval, "test", 4), 0);
+	ck_assert_uint_eq(stval, 12345);
 }
-
-/**
- * Ensure that handle_token() returns a non-zero
- * value if the state's token type is invalid.
- */
-static void handle_token_invalid_token_type(void)
-{
-	size_t s = 0;
-	const char *err = "invalid config token type 4\n";
-	state.token = 4;
-	errbuf[0] = '\0';
-	CU_ASSERT_EQUAL(1, handle_token("test=", 5, &s));
-	CU_ASSERT_NOT_EQUAL_FATAL(errbuf[0], '\0');
-	CU_ASSERT_STRING_EQUAL(errbuf, err);
-}
+END_TEST
 
 /**
  * Test that parse_config() returns 1 when given
  * invalid parameters.
  */
-static void parse_config_invalid_params(void)
+START_TEST(parse_config_invalid_params)
 {
-	const char *str = "xxx";
-	CU_ASSERT_EQUAL(1, parse_config(NULL, 1));
-	CU_ASSERT_EQUAL(1, parse_config(str, 0));
+	ck_assert_int_eq(parse_config(NULL, 1), 1);
+	ck_assert_int_eq(parse_config("xxx", 0), 1);
 }
+END_TEST
 
 /**
  * Test that parse_config() returns 0 when given
  * an empty string.
  */
-static void parse_config_parses_empty_string(void)
+START_TEST(parse_config_empty_string)
 {
-	const char *str = "";
-	CU_ASSERT_EQUAL(0, parse_config(str, 1));
+	ck_assert_int_eq(parse_config("", 1), 0);
 }
+END_TEST
 
 /**
  * Test that parse_config() returns 0 when it
  * encounters a null byte within a string.
  */
-static void parse_config_null_within_string(void)
+START_TEST(parse_config_null_within_string)
 {
-	const char *str = "\n\0\n";
-	CU_ASSERT_EQUAL(0, parse_config(str, 3));
+	ck_assert_int_eq(parse_config("\n\0\n", 3), 0);
 }
+END_TEST
 
 /**
  * Test that parse_config() ignores lines
  * beginning with a comment.
  */
-static void parse_config_ignores_comments(void)
+START_TEST(parse_config_ignores_comments)
 {
-	const char *str = "; Comment\n";
-	CU_ASSERT_EQUAL(0, parse_config(str, strlen(str)));
+	ck_assert_int_eq(parse_config("; Comment\n", 10), 0);
 }
+END_TEST
 
 /**
  * Test that parse_config() fails on an invalid
  * identifier for a section name (i.e. not [a-z0-9_]).
  */
-static void parse_config_invalid_section(void)
+START_TEST(parse_config_invalid_section)
 {
 	const char *err =
 	"config: [Line: 1, Char: 2] Invalid Section\n";
@@ -581,25 +446,19 @@ static void parse_config_invalid_section(void)
 	int c;
 
 	/* Check anything not [a-z0-9_], whitespace, or a comment. */
-	memset(&state, 0, sizeof(state));
+	memset(&state, 0, sizeof state);
 	for (c = 1; c <= 0xff; c++) {
-		if (isspace(c) || isdigit(c) || islower(c))
-			continue;
-		if (c == '_' || c == ';')
+		if (isspace(c) || isdigit(c) || islower(c) || c == '_' || c == ';')
 			continue;
 
 		str[1] = (char)c;
 		state.section = NULL;
 		state.section_len = 0;
 
-		CU_ASSERT_EQUAL(1, parse_config(str, strlen(str)));
-		CU_ASSERT_PTR_NULL(state.section);
-		CU_ASSERT_EQUAL(state.section_len, 0);
-
-		/* Ensure the expected error message was generated. */
-		CU_ASSERT_NOT_EQUAL_FATAL(errbuf[0], '\0');
-		CU_ASSERT_EQUAL_FATAL(strlen(errbuf), strlen(err));
-		CU_ASSERT_STRING_EQUAL(errbuf, err);
+		ck_assert_int_eq(parse_config(str, strlen(str)), 1);
+		ck_assert_ptr_null(state.section);
+		ck_assert_uint_eq(state.section_len, 0);
+		ck_assert_str_eq(errbuf, err);
 	}
 
 	/* Check if the name would run past the end of the string */
@@ -607,29 +466,72 @@ static void parse_config_invalid_section(void)
 	str[6] = 'x';
 	str[7] = 'z';
 
-	CU_ASSERT_EQUAL(1, parse_config(str, strlen(str)));
-	CU_ASSERT_PTR_NULL(state.section);
-	CU_ASSERT_EQUAL(state.section_len, 0);
-
-	/* Ensure the expected error message was generated. */
-	CU_ASSERT_NOT_EQUAL_FATAL(errbuf[0], '\0');
-	CU_ASSERT_EQUAL_FATAL(strlen(errbuf), strlen(err));
-	CU_ASSERT_STRING_EQUAL(errbuf, err);
+	ck_assert_int_eq(parse_config(str, strlen(str)), 1);
+	ck_assert_ptr_null(state.section);
+	ck_assert_uint_eq(state.section_len, 0);
+	ck_assert_str_eq(errbuf, err);
 }
+END_TEST
 
 /**
- * Ensure that keys get correctly parsed, and that
- * keys with empty values are ignored (NULL).
+ * Test that the config parser uses the main callback
+ * when it encounters the main section.
  */
-static void handle_token_ignores_empty_keys(void)
+START_TEST(parse_config_main_section_cb)
 {
-	const char *data = "[main]\nkey=\n";
-	CU_ASSERT_EQUAL(0, parse_config(data, strlen(data)));
-	CU_ASSERT_EQUAL(state.key_len, 3);
-	CU_ASSERT_PTR_NULL(state.key);
-	CU_ASSERT_EQUAL(state.token, 0);
-	CU_ASSERT_FALSE(main_config_called);
+	const char *str = "[main]\n";
+
+	/* Ensure the section was parsed correctly */
+	memset(&state, 0, sizeof state);
+	db_called = db_called_for_main = 0;
+	main_config = main_config_proc;
+	ck_assert_int_eq(parse_config(str, strlen(str)), 0);
+	ck_assert_uint_eq(state.section_len, 4);
+	ck_assert_mem_eq(state.section, "main", 4);
+
+	/* Check for the callback */
+	ck_assert(state.cb == main_config_proc);
+	ck_assert(!db_called_for_main);
+
+	/* If no main callback is set, check that db gets called. */
+	memset(&state, 0, sizeof state);
+	main_config = NULL;
+	db_called = db_called_for_main = 0;
+	ck_assert_int_eq(parse_config(str, strlen(str)), 0);
+
+	/* Check for the callback */
+	ck_assert(state.cb == db_config_proc);
+	ck_assert(!!db_called_for_main);
 }
+END_TEST
+
+/**
+ * Test that the config parser first calls the db
+ * lookup function, and then the source lookup
+ * function when it encounters a section other
+ * than main.
+ */
+START_TEST(parse_config_non_main_section_cb)
+{
+	const char *str = "[test]\n";
+
+	memset(&state, 0, sizeof state);
+	main_config = main_config_proc;
+	db_called = 0;
+	ck_assert_int_eq(parse_config(str, strlen(str)), 0);
+	ck_assert_uint_eq(state.section_len, 4);
+	ck_assert_mem_eq(state.section, "test", 4);
+
+	/* Check for the callback */
+	ck_assert(state.cb == db_config_proc);
+	++db_called;
+
+	/* Now, check the source callback */
+	memset(&state, 0, sizeof state);
+	ck_assert_int_eq(parse_config(str, strlen(str)), 0);
+	ck_assert(state.cb == source_config_proc);
+}
+END_TEST
 
 /**
  * Test that a key with a value of only a comment is
@@ -638,161 +540,141 @@ static void handle_token_ignores_empty_keys(void)
  *
  * This also tests that a valid value is parsed.
  */
-static void parse_config_valid_value(void)
+START_TEST(parse_config_valid_value)
 {
 	char str[] = "[main]\nkey=;value";
 	char c;
 
 	/* Check that a comment */
-	errbuf[0] = '\0';
+	*errbuf = '\0';
 	main_config_called = 0;
-	memset(&state, 0, sizeof(state));
-	CU_ASSERT_EQUAL(0, parse_config(str, strlen(str)));
-	CU_ASSERT_EQUAL(state.section, str+1);
-	CU_ASSERT_EQUAL(state.section_len, 4);
-	CU_ASSERT_EQUAL(state.key, str+7);
-	CU_ASSERT_EQUAL(state.key_len, 3);
-	CU_ASSERT_PTR_NULL(state.value);
-	CU_ASSERT_EQUAL(state.value_len, 0);
-	CU_ASSERT_EQUAL(main_config_called, 0);
+	memset(&state, 0, sizeof state);
+
+	config_init(main_config_proc);
+	ck_assert_int_eq(parse_config(str, strlen(str)), 0);
+	ck_assert_uint_eq(state.section_len, 4);
+	ck_assert_mem_eq(state.section, "main", 4);
+	ck_assert_uint_eq(state.key_len, 3);
+	ck_assert_mem_eq(state.key, "key", 3);
+	ck_assert_uint_eq(state.value_len, 0);
+	ck_assert_ptr_null(state.value);
+	ck_assert_int_eq(main_config_called, 0);
 
 	/* ... and leading whitespace should be ignored. */
-	for (c='\t';c<'\r' + 2;c++) {
+	for (c='\t'; c<'\r' + 2; c++) {
 		if (c == '\n') c++;
 		if (c > '\r') c = ' ';
 
+		*errbuf = '\0';
 		str[11] = c;
-		errbuf[0] = '\0';
-		memset(&state, 0, sizeof(state));
+		memset(&state, 0, sizeof state);
 		main_config_called = 0;
-		CU_ASSERT_EQUAL(0, parse_config(str, strlen(str)));
-		CU_ASSERT_EQUAL(state.section, str+1);
-		CU_ASSERT_EQUAL(state.section_len, 4);
-		CU_ASSERT_EQUAL(state.key_len, 0);
-		CU_ASSERT_PTR_NULL(state.key);
-		CU_ASSERT_EQUAL(state.value, str+12);
-		CU_ASSERT_EQUAL(state.value_len, 5);
-		CU_ASSERT_EQUAL(main_config_called, 1);
 
-		/* No error message should be generated. */
-		CU_ASSERT_EQUAL_FATAL(errbuf[0], '\0');
+		ck_assert_int_eq(parse_config(str, strlen(str)), 0);
+		ck_assert_uint_eq(state.section_len, 4);
+		ck_assert_mem_eq(state.section, "main", 4);
+		ck_assert_uint_eq(state.key_len, 0);
+		ck_assert_ptr_null(state.key);
+		ck_assert_uint_eq(state.value_len, 5);
+		ck_assert_mem_eq(state.value, str + 12, 5);
+		ck_assert_int_eq(main_config_called, 1);
+		ck_assert(!*errbuf);
 	}
 }
+END_TEST
 
 /**
  * Test that we get an error for a key followed by a section
  * start token (i.e. no assignment op and thus no value.)
  */
-static void parse_config_section_where_value_expected(void)
+START_TEST(parse_config_section_where_value_expected)
 {
-	char str[] = "[main]\nkey[main]";
-	char *err  =
-	"config: [Line: 2, Char: 4] Value expected\n";
+	char str[]      = "[main]\nkey[main]";
+	const char *err = "config: [Line: 2, Char: 4] Value expected\n";
 
-	errbuf[0] = '\0';
-	memset(&state, 0, sizeof(state));
-	CU_ASSERT_EQUAL(1, parse_config(str, strlen(str)));
-
-	/* Check for the error message */
-	CU_ASSERT_NOT_EQUAL_FATAL(errbuf[0], '\0');
-	CU_ASSERT_EQUAL_FATAL(strlen(errbuf), strlen(err));
-	CU_ASSERT_STRING_EQUAL(errbuf, err);
+	*errbuf = '\0';
+	memset(&state, 0, sizeof state);
+	ck_assert_int_eq(parse_config(str, strlen(str)), 1);
+	ck_assert_str_eq(errbuf, err);
 }
+END_TEST
 
 /**
  * Test that we get an error if the section
  * start token is missing.
  */
-static void parse_config_missing_section_start(void)
+START_TEST(parse_config_missing_section_start)
 {
-	char str[] = "main]\nkey=value";
-	char *err  =
-	"config: [Line: 1, Char: 1] Section expected\n";
+	char str[]      = "main]\nkey=value";
+	const char *err = "config: [Line: 1, Char: 1] Section expected\n";
 
 check:
-	errbuf[0] = '\0';
-	memset(&state, 0, sizeof(state));
-	CU_ASSERT_EQUAL(1, parse_config(str, strlen(str)));
-	CU_ASSERT_PTR_NULL(state.section);
-	CU_ASSERT_EQUAL(state.section_len, 0);
-
-	/* Check for the error message */
-	CU_ASSERT_NOT_EQUAL_FATAL(errbuf[0], '\0');
-	CU_ASSERT_EQUAL_FATAL(strlen(errbuf), strlen(err));
-	CU_ASSERT_STRING_EQUAL(errbuf, err);
+	*errbuf = '\0';
+	memset(&state, 0, sizeof state);
+	ck_assert_int_eq(parse_config(str, strlen(str)), 1);
+	ck_assert_uint_eq(state.section_len, 0);
+	ck_assert_ptr_null(state.section);
+	ck_assert_str_eq(errbuf, err);
 
 	/* End section name without section name */
-	if (!memcmp(str, "main]", 5)) {
-		memmove(str, &str[4], strlen(str) - 3);
+	switch (*str) {
+	case 'm': /* end section name without a section name */
+		memmove(str, str + 4, strlen(str) - 3);
 		goto check;
-	}
-
-	/* key=value without section */
-	if (str[0] == ']') {
-		memmove(str, &str[2], strlen(str) - 1);
+	case ']': /* key=value without a section */
+		memmove(str, str + 2, strlen(str) - 1);
 		goto check;
 	}
 }
+END_TEST
 
 /**
  * Test that we get an error for an assignment operator without
  * a section.
  */
-static void parse_config_assignment_without_section(void)
+START_TEST(parse_config_assignment_without_section)
 {
-	char str[] = "\n=value";
-	char *err  =
-	"config: [Line: 2, Char: 1] Section expected\n";
+	char str[]      = "\n=value";
+	const char *err = "config: [Line: 2, Char: 1] Section expected\n";
 
-	errbuf[0] = '\0';
-	memset(&state, 0, sizeof(state));
-	CU_ASSERT_EQUAL(1, parse_config(str, strlen(str)));
-
-	/* Check for the error message */
-	CU_ASSERT_NOT_EQUAL_FATAL(errbuf[0], '\0');
-	CU_ASSERT_EQUAL_FATAL(strlen(errbuf), strlen(err));
-	CU_ASSERT_STRING_EQUAL(errbuf, err);
+	*errbuf = '\0';
+	memset(&state, 0, sizeof state);
+	ck_assert_int_eq(parse_config(str, strlen(str)), 1);
+	ck_assert_str_eq(errbuf, err);
 }
+END_TEST
 
 /**
  * Test that we get an error for an assignment operator missing
  * a key, that isn't the first key in the section.
  */
-static void parse_config_assignment_without_key(void)
+START_TEST(parse_config_assignment_without_key)
 {
-	char str[] = "[main]\nkey=value\n=value2";
-	char *err  =
-	"config: [Line: 3, Char: 1] Key expected\n";
+	char str[]      = "[main]\nkey=value\n=value2";
+	const char *err = "config: [Line: 3, Char: 1] Key expected\n";
 
-	errbuf[0] = '\0';
-	memset(&state, 0, sizeof(state));
-	CU_ASSERT_EQUAL(1, parse_config(str, strlen(str)));
-
-	/* Check for the error message */
-	CU_ASSERT_NOT_EQUAL_FATAL(errbuf[0], '\0');
-	CU_ASSERT_EQUAL_FATAL(strlen(errbuf), strlen(err));
-	CU_ASSERT_STRING_EQUAL(errbuf, err);
+	*errbuf = '\0';
+	memset(&state, 0, sizeof state);
+	ck_assert_int_eq(parse_config(str, strlen(str)), 1);
+	ck_assert_str_eq(errbuf, err);
 }
+END_TEST
 
 /**
  * Test that we get an error for a key followed by a section
  * start token (i.e. no assignment op and thus no value.)
  */
-static void parse_config_key_without_assignment_op(void)
+START_TEST(parse_config_assignment_missing_op)
 {
-	char str[] = "[main]\n_3y:";
-	char *err  =
-	"config: [Line: 2, Char: 4] Value expected\n";
+	char str[]       = "[main]\n_3y:";
+	const char *err  = "config: [Line: 2, Char: 4] Value expected\n";
 
-	errbuf[0] = '\0';
-	memset(&state, 0, sizeof(state));
-	CU_ASSERT_EQUAL(1, parse_config(str, strlen(str)));
-
-	/* Check for the error message */
-	CU_ASSERT_NOT_EQUAL_FATAL(errbuf[0], '\0');
-	CU_ASSERT_EQUAL_FATAL(strlen(errbuf), strlen(err));
-	CU_ASSERT_STRING_EQUAL(errbuf, err);
+	*errbuf = '\0';
+	memset(&state, 0, sizeof state);
+	ck_assert_int_eq(parse_config(str, strlen(str)), 1);
+	ck_assert_str_eq(errbuf, err);
 }
+END_TEST
 
 /* {{{ This is the default config copied from src/config_gen.c */
 static const char *default_config_1 =
@@ -829,7 +711,7 @@ static const char *default_config_2 =
 /**
  * Test that the parser parses a default config.
  */
-static void parses_default_config(void)
+START_TEST(parse_config_default_config)
 {
 	size_t off, len; char *str;
 
@@ -837,141 +719,63 @@ static void parses_default_config(void)
 	off = strlen(default_config_1);
 	len = strlen(default_config_1) + strlen(default_config_2);
 	str = malloc(len);
-	CU_ASSERT_PTR_NOT_NULL_FATAL(str);
+	ck_assert_ptr_nonnull(str);
 
 	/* Concat the config parts */
 	memcpy(str, default_config_1, off);
 	memcpy(str + off, default_config_2, strlen(default_config_2));
 
 	/* Make sure we can parse it */
-	errbuf[0] = '\0';
-	memset(&state, 0, sizeof(state));
-	CU_ASSERT_EQUAL(0, parse_config(str, len));
+	*errbuf = '\0';
+	memset(&state, 0, sizeof state);
+	ck_assert_int_eq(parse_config(str, len), 0);
+	ck_assert(!*errbuf);
 	free(str);
-
-	/* Check for the error message */
-	CU_ASSERT_EQUAL_FATAL(errbuf[0], '\0');
 }
+END_TEST
 
-static CU_TestInfo config_tests[] = {
-	{
-		"config_init works",
-		test_config_init
-	},
-	{
-		"config_set_value - invalid params",
-		config_set_value_params
-	},
-	{
-		"config_set_value - wrong key",
-		config_set_value_wrong_key
-	},
-	{
-		"set_value_string - value too big",
-		set_value_string_value_too_big
-	},
-	{
-		"set_value_string works",
-		test_set_value_string
-	},
-	{
-		"set_value_number - value not numeric",
-		test_set_value_number_not_numeric
-	},
-	{
-		"set_value_number - value not unsigned",
-		set_value_number_not_unsigned
-	},
-	{
-		"set_value_number - value out of range",
-		set_value_number_out_of_range
-	},
-	{
-		"set_value_number - bad storage size",
-		set_value_number_bad_dest_size
-	},
-	{
-		"set_value_number works",
-		test_set_value_number
-	},
-	{
-		"handle_token - invalid token type",
-		handle_token_invalid_token_type
-	},
-	{
-		"parse_config - invalid params",
-		parse_config_invalid_params
-	},
-	{
-		"parsing empty string",
-		parse_config_parses_empty_string
-	},
-	{
-		"null within string",
-		parse_config_null_within_string
-	},
-	{
-		"ignores comments",
-		parse_config_ignores_comments
-	},
-	{ /* XXX: expected to be slow */
-		"invalid section name",
-		parse_config_invalid_section
-	},
-	{
-		"main section callback",
-		test_main_section_callback
-	},
-	{
-		"non-main callbacks",
-		test_non_main_callbacks
-	},
-	{
-		"ignores empty keys",
-		handle_token_ignores_empty_keys
-	},
-	{
-		"parses valid values",
-		parse_config_valid_value
-	},
-	{
-		"error if section where value expected",
-		parse_config_section_where_value_expected
-	},
-	{
-		"error if missing section start token",
-		parse_config_missing_section_start
-	},
-	{
-		"error on assignment without section",
-		parse_config_assignment_without_section
-	},
-	{
-		"error on assignment without key",
-		parse_config_assignment_without_key
-	},
-	{
-		"error on key without assignment op",
-		parse_config_key_without_assignment_op
-	},
-	{
-		"parses default config",
-		parses_default_config
-	},
-
-	CU_TEST_INFO_NULL
-};
-
-void config_add_suite(void)
+Suite *config_suite(void)
 {
-	size_t i = 0;
-	CU_pSuite suite;
+	Suite *s;
+	TCase *t;
 
-	suite = CU_add_suite("Config Parser", NULL, NULL);
-	while (config_tests[i].pName) {
-		CU_add_test(suite, config_tests[i].pName,
-		            config_tests[i].pTestFunc);
-		i++;
-	}
+	s = suite_create("Configuration");
+	t = tcase_create("config_init");
+	tcase_add_test(t, test_config_init);
+	tcase_set_timeout(t, 1);
+	suite_add_tcase(s, t);
+
+	t = tcase_create("config_set_value");
+	tcase_add_test(t, config_set_value_params);
+	tcase_add_test(t, config_set_value_wrong_key);
+	tcase_add_test(t, config_set_value_string_too_big);
+	tcase_add_test(t, config_set_value_string);
+	tcase_add_test(t, config_set_value_number_not_numeric);
+	tcase_add_test(t, config_set_value_number_not_unsigned);
+	tcase_add_test(t, config_set_value_number_out_of_range);
+	tcase_add_test(t, config_set_value_number_bad_dest_size);
+	tcase_add_test(t, config_set_value_number);
+	tcase_set_timeout(t, 1);
+	suite_add_tcase(s, t);
+
+	t = tcase_create("parse_config");
+	tcase_add_test(t, parse_config_invalid_params);
+	tcase_add_test(t, parse_config_empty_string);
+	tcase_add_test(t, parse_config_null_within_string);
+	tcase_add_test(t, parse_config_ignores_comments);
+	tcase_add_test(t, parse_config_invalid_section);
+	tcase_add_test(t, parse_config_main_section_cb);
+	tcase_add_test(t, parse_config_non_main_section_cb);
+	tcase_add_test(t, parse_config_valid_value);
+	tcase_add_test(t, parse_config_section_where_value_expected);
+	tcase_add_test(t, parse_config_missing_section_start);
+	tcase_add_test(t, parse_config_assignment_without_section);
+	tcase_add_test(t, parse_config_assignment_without_key);
+	tcase_add_test(t, parse_config_assignment_missing_op);
+	tcase_add_test(t, parse_config_default_config);
+	tcase_set_timeout(t, 1);
+	suite_add_tcase(s, t);
+
+	return s;
 }
 

@@ -36,8 +36,12 @@ dnl Check compiler characteristics
 AC_C_CONST
 AC_TYPE_SIZE_T
 
-dnl Check for Databases
+dnl Check for check
 AX_SET_PREFIX
+AX_CHECK_DEP([check], [check.h], [check], [srunner_run_all], [nonfatal])
+LIBS=
+
+dnl Check for Databases
 AX_CHECK_DEP([sqlite3], [sqlite3.h], [sqlite3], [sqlite3_open], [nonfatal])
 AX_CHECK_DEP([pgsql], [libpq-fe.h], [pq], [PQconnectdb], [nonfatal])
 AX_CHECK_DEP([mysql], [mysql.h], [mysql], [mysql_library_init], [nonfatal])
@@ -55,7 +59,6 @@ dnl Check for libgit2
 AX_CHECK_DEP([libgit2], [git2.h], [git2], [git_libgit2_init], [nonfatal])
 
 dnl Check for check, gcovr, and indent
-AX_CHECK_DEP([check], [check.h], [check], [srunner_run_all], [nonfatal])
 AC_PATH_PROG([GCOVR],[gcovr])
 AC_PATH_PROG([INDENT],[indent])
 

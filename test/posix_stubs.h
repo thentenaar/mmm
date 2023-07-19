@@ -165,7 +165,7 @@ static void reset_stubs(void)
 	if (!-- func ## _fails_at)\
 		return -1;\
 	if (func ## _errno >= 0) {\
-		CU_ASSERT_EQUAL(errno, 0);\
+		ck_assert_int_eq(errno, 0);\
 		errno = func ## _errno ;\
 		func ## _errno = -1;\
 		return -1;\
@@ -199,7 +199,6 @@ static int fstat(int fd, struct stat *buf)
 	DO_STUB(fstat);
 }
 /* }}} */
-
 
 /* {{{ open */
 static int open(const char *pathname, int flags, ...)

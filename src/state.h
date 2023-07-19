@@ -60,7 +60,7 @@ int state_cleanup_table(void);
 /**
  * Add a new revision to the state table.
  *
- * \param[in] rev  Current local revision
+ * \param[in] rev Current local revision
  * \return 0 on success, non-zero on error.
  */
 int state_add_revision(const char *rev);

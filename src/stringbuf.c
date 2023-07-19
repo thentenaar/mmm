@@ -52,7 +52,7 @@ static void sbuf_add_formatting_pre(long flags)
 	if (offset && (flags & SBUF_LSPACE))
 		sbuf[offset++] = ' ';
 	if (flags & SBUF_LPAREN) sbuf[offset++] = '(';
-	if (flags & SBUF_QUOTE) sbuf[offset++] = '\'';
+	if (flags & SBUF_QUOTE)  sbuf[offset++] = '\'';
 }
 
 /**
@@ -61,8 +61,8 @@ static void sbuf_add_formatting_pre(long flags)
 static void sbuf_add_formatting_post(long flags)
 {
 	/* Add a quote, comma, etc. */
-	if (flags & SBUF_QUOTE) sbuf[offset++] = '\'';
-	if (flags & SBUF_COMMA) sbuf[offset++] = ',';
+	if (flags & SBUF_QUOTE)  sbuf[offset++] = '\'';
+	if (flags & SBUF_COMMA)  sbuf[offset++] = ',';
 	if (flags & SBUF_EQUALS) sbuf[offset++] = '=';
 	if (flags & SBUF_RPAREN) sbuf[offset++] = ')';
 	if (flags & SBUF_SCOLON) sbuf[offset++] = ';';
@@ -267,3 +267,30 @@ int sbuf_add_param_num(const char *param, unsigned long value)
 
 	return retval;
 }
+
+/**
+ * Add a signed numeric parameter to the string buffer.
+ *
+ * This will add:
+ *     param=value
+ *
+ * to the buffer, adding a leading space between parameters.
+ *
+ * \param[in] param  Parameter name
+ * \param[in] value  Signed numeric value
+ * \return 0 on success, 1 on failure.
+ */
+int sbuf_add_param_snum(const char *param, long value)
+{
+	int retval = 0;
+
+	/* Copy the param and value */
+	if (sbuf_add_str(param, SBUF_LSPACE | SBUF_EQUALS, 0))
+		++retval;
+
+	if (!retval && sbuf_add_snum(value, 0))
+		++retval;
+
+	return retval;
+}
+

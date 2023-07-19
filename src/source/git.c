@@ -18,20 +18,6 @@
 #include "../config.h"
 #include "../utils.h"
 
-/* {{{ libgit2 < 0.22.0 compatibility macros */
-/**
- * git_threads_init and git_threads_shutdown were renamed
- * in libgit2 0.22.0.
- */
-#ifndef IN_TESTS
-#include <git2/version.h>
-
-#if LIBGIT2_VER_MAJOR == 0 && LIBGIT2_VER_MINOR < 22
-#define git_libgit2_init git_threads_init
-#define git_libgit2_shutdown git_threads_shutdown
-#endif
-#endif /* IN_TESTS }}} */
-
 /**
  * Configuration values:
  *

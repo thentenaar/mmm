@@ -135,10 +135,8 @@ static int handle_token(const char *start, size_t len, size_t *pos)
 		}
 
 		/* Pass it on through to the db/source layers */
-		if (!state.cb)
-			state.cb = db_get_config_cb(start, end);
-		if (!state.cb)
-			state.cb = source_get_config_cb(start, end);
+		if (!state.cb) state.cb = db_get_config_cb(start, end);
+		if (!state.cb) state.cb = source_get_config_cb(start, end);
 		break;
 	case KEY:
 		state.key = start;
@@ -290,8 +288,7 @@ int parse_config(const char *config, size_t len)
 
 		/* If we have a token, handle it. */
 		if (state.token) {
-			retval = handle_token(config + pos, len - pos,
-			                      &pos);
+			retval = handle_token(config + pos, len - pos, &pos);
 			if (retval) goto invalid_identifier;
 		}
 

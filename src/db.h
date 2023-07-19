@@ -54,7 +54,7 @@ config_callback_t db_get_config_cb(const char *driver, size_t len);
  * \param[in] username Username to authenticate with.
  * \param[in] password Password to authenticate with.
  * \param[in] db       Database to connect to.
- * \return 0 on success, non-zero on error.
+ * \return 0 if successful, non-zero on error.
  */
 int db_connect(const char *driver, const char *host,
                const unsigned short port,

@@ -62,7 +62,7 @@ Required (at least one of these):
 
 Optional:
   - [libgit2](https://libgit2.github.com) for the ``git`` source.
-  - [cunit](http://cunit.sourceforge.net) for building the tests.
+  - [check](https://libcheck.github.io/check/) for building the tests.
   - [gcovr](http://gcovr.com) for generating coverage reports.
 
 Dependencies will be selected by default if they're available in
@@ -74,7 +74,6 @@ for these dependencies yourself by passing the following options:
  --with-pgsql=PATH       enable support for PostgreSQL
  --with-mysql=PATH       enable support for MariaDB / MySQL
  --with-libgit2=PATH     enable git support via libgit2
- --with-cunit=PATH       enable support for CUnit
 ```
 
 Passing a ``--without-`` argument will prevent ``mmm`` from being
@@ -89,7 +88,7 @@ standard ``./configure && make && make install``.
 Alternatively, you can also run the automated tests, and generate
 a coverage report.
 
-- To run the tests: ``make test``
+- To run the tests: ``make check``
 - To generate a coverage report: ``make clean coverage``
 - To uninstall: ``make uninstall``
 
@@ -184,7 +183,8 @@ MySQL
 -----
 
 MySQL is supported, although you should be aware that any DDL commands
-will cause an implicit commit. Thus, when writing migrations, you should use ``IF [NOT] EXISTS`` on your ``CREATE`` and ``DROP`` statements to
+will cause an implicit commit. Thus, when writing migrations, you should
+use ``IF [NOT] EXISTS`` on your ``CREATE`` and ``DROP`` statements to
 ensure that migrations can still run if, for example, and added table
 could not be successfully dropped on rollback.
 

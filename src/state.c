@@ -222,7 +222,7 @@ ret:
 /**
  * Add a new revision to the state table.
  *
- * \param[in] rev  Current local revision
+ * \param[in] rev Current local revision
  * \return 0 on success, non-zero on error.
  */
 int state_add_revision(const char *rev)
@@ -273,13 +273,11 @@ int state_add_revision(const char *rev)
 		retval = db_query(sbuf_get_buffer(), NULL, NULL);
 	}
 
-ret:
 	sleep(1);
 	return retval;
 
 err:
-	++retval;
-	goto ret;
+	return ++retval;
 }
 
 /**

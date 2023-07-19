@@ -10,7 +10,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <CUnit/CUnit.h>
+
+#include <check.h>
 #include "tests.h"
 
 /* from test_runner.c */
@@ -19,7 +20,7 @@ extern char errbuf[];
 /* {{{ DB / file stubs */
 static int db_query(const char *query, void *cb, void *userdata);
 static char *map_file(const char *path, size_t *size);
-static void unmap_file(void);
+static void unmap_file(char *mem, size_t size);
 
 #define DB_H
 #define FILE_H
@@ -34,27 +35,31 @@ static int db_query_called = 0;
 /**
  * Database query stub
  */
-static int db_query(const char *query, void *UNUSED(cb),
-                    void *UNUSED(userdata))
+static int db_query(const char *query, void *cb, void *userdata)
 {
+	(void)cb;
+	(void)userdata;
 	++db_query_called;
 	if (!query || !strlen(query))
 		return 1;
 
 	/* Check the query */
 	if (expected_query)
-		CU_ASSERT_STRING_EQUAL_FATAL(query, expected_query);
+		ck_assert_str_eq(query, expected_query);
 	return 0;
 }
 
-static char *map_file(const char *UNUSED(path), size_t *size)
+static char *map_file(const char *path, size_t *size)
 {
+	(void)path;
 	*size = map_file_returns_size;
 	return map_file_returns;
 }
 
-static void unmap_file(void)
+static void unmap_file(char *mem, size_t size)
 {
+	(void)mem;
+	(void)size;
 	return;
 }
 
@@ -104,193 +109,173 @@ static char migration_up_down_expected_query_down[] =
  * Test the behavior of migration_upgrade() when map_file()
  * fails.
  */
-static void migration_upgrade_map_file_fails(void)
+START_TEST(migration_upgrade_map_file_fails)
 {
-	db_query_called = 0;
-	map_file_returns = NULL;
+	db_query_called       = 0;
+	map_file_returns      = NULL;
 	map_file_returns_size = 0;
-	CU_ASSERT_EQUAL(1, migration_upgrade("test"));
-	CU_ASSERT_FALSE(db_query_called);
+	ck_assert_int_ne(migration_upgrade("test"), 0);
+	ck_assert(!db_query_called);
 }
+END_TEST
 
 /**
  * Test the behavior of migration_upgrade() when the migration
  * only contains an "up" portion.
  */
-static void migration_upgrade_up_only(void)
+START_TEST(migration_upgrade_up_only)
 {
-	db_query_called = 0;
-	map_file_returns = migration_up_only;
+	db_query_called       = 0;
+	map_file_returns      = migration_up_only;
 	map_file_returns_size = strlen(migration_up_only);
-	expected_query = migration_up_only + up_len + 1;
-	CU_ASSERT_EQUAL(0, migration_upgrade("test"));
-	CU_ASSERT_TRUE(db_query_called);
+	expected_query        = migration_up_only + up_len + 1;
+	ck_assert_int_eq(migration_upgrade("test"), 0);
+	ck_assert(db_query_called);
 }
+END_TEST
 
 /**
  * Test the behavior of migration_upgrade() when the migration
- * only contains an "down" portion.
+ * only contains a "down" portion.
  */
-static void migration_upgrade_down_only(void)
+START_TEST(migration_upgrade_down_only)
 {
-	db_query_called = 0;
-	map_file_returns = migration_down_only;
+	db_query_called       = 0;
+	map_file_returns      = migration_down_only;
 	map_file_returns_size = strlen(migration_down_only);
-	expected_query = NULL;
-	CU_ASSERT_EQUAL(0, migration_upgrade("test"));
-	CU_ASSERT_FALSE(db_query_called);
+	expected_query        = NULL;
+	ck_assert_int_eq(migration_upgrade("test"), 0);
+	ck_assert(!db_query_called);
 }
+END_TEST
 
 /**
  * Test that migration_upgrade() works independent of having
  * whitespace between the "up" and "down" portions.
  */
-static void migration_upgrade_no_space_before_down(void)
+START_TEST(migration_upgrade_no_space_before_down)
 {
-	db_query_called = 0;
-	map_file_returns = migration_up_works_no_space;
+	db_query_called       = 0;
+	map_file_returns      = migration_up_works_no_space;
 	map_file_returns_size = strlen(migration_up_works_no_space);
-	expected_query = migration_up_down_expected_query_up;
-	CU_ASSERT_EQUAL(0, migration_upgrade("test"));
-	CU_ASSERT_TRUE(db_query_called);
+	expected_query        = migration_up_down_expected_query_up;
+	ck_assert_int_eq(migration_upgrade("test"), 0);
+	ck_assert(db_query_called);
 }
+END_TEST
 
 /**
  * Test that migration_upgrade() works.
  */
-static void test_migration_upgrade(void)
+START_TEST(test_migration_upgrade)
 {
-	db_query_called = 0;
-	map_file_returns = migration_up_works;
+	db_query_called       = 0;
+	map_file_returns      = migration_up_works;
 	map_file_returns_size = strlen(migration_up_works);
-	expected_query = migration_up_down_expected_query_up;
-	CU_ASSERT_EQUAL(0, migration_upgrade("test"));
-	CU_ASSERT_TRUE(db_query_called);
+	expected_query        = migration_up_down_expected_query_up;
+	ck_assert_int_eq(migration_upgrade("test"), 0);
+	ck_assert(db_query_called);
 }
+END_TEST
 
 /**
  * Test the behavior of migration_downgrade() when map_file()
  * fails.
  */
-static void migration_downgrade_map_file_fails(void)
+START_TEST(migration_downgrade_map_file_fails)
 {
-	db_query_called = 0;
-	map_file_returns = NULL;
+	db_query_called       = 0;
+	map_file_returns      = NULL;
 	map_file_returns_size = 0;
-	CU_ASSERT_EQUAL(1, migration_downgrade("test"));
-	CU_ASSERT_FALSE(db_query_called);
+	ck_assert_int_ne(migration_downgrade("test"), 0);
+	ck_assert(!db_query_called);
 }
+END_TEST
 
 /**
  * Test the behavior of migration_downgrade() when the migration
  * only contains an "up" portion.
  */
-static void migration_downgrade_up_only(void)
+START_TEST(migration_downgrade_up_only)
 {
-	db_query_called = 0;
-	map_file_returns = migration_up_only;
+	db_query_called       = 0;
+	map_file_returns      = migration_up_only;
 	map_file_returns_size = strlen(migration_up_only);
-	expected_query = NULL;
-	CU_ASSERT_EQUAL(0, migration_downgrade("test"));
-	CU_ASSERT_FALSE(db_query_called);
+	expected_query        = NULL;
+
+	ck_assert_int_eq(migration_downgrade("test"), 0);
+	ck_assert(!db_query_called);
 }
+END_TEST
 
 /**
  * Test the behavior of migration_downgrade() when the migration
  * only contains an "down" portion.
  */
-static void migration_downgrade_down_only(void)
+START_TEST(migration_downgrade_down_only)
 {
-	db_query_called = 0;
-	map_file_returns = migration_down_only;
+	db_query_called       = 0;
+	map_file_returns      = migration_down_only;
 	map_file_returns_size = strlen(migration_down_only);
-	expected_query = migration_down_only + down_len + 1;
-	CU_ASSERT_EQUAL(0, migration_downgrade("test"));
-	CU_ASSERT_TRUE(db_query_called);
+	expected_query        = migration_down_only + down_len + 1;
+	ck_assert_int_eq(migration_downgrade("test"), 0);
+	ck_assert(db_query_called);
 }
+END_TEST
 
 /**
  * Test that migration_downgrade() works independent of having
  * whitespace between the "up" and "down" portions.
  */
-static void migration_downgrade_no_space_before_up(void)
+START_TEST(migration_downgrade_no_space_before_up)
 {
-	db_query_called = 0;
-	map_file_returns = migration_down_works_no_space;
+	db_query_called       = 0;
+	map_file_returns      = migration_down_works_no_space;
 	map_file_returns_size = strlen(migration_down_works_no_space);
-	expected_query = migration_up_down_expected_query_down;
-	CU_ASSERT_EQUAL(0, migration_downgrade("test"));
-	CU_ASSERT_TRUE(db_query_called);
+	expected_query        = migration_up_down_expected_query_down;
+	ck_assert_int_eq(migration_downgrade("test"), 0);
+	ck_assert(db_query_called);
 }
+END_TEST
 
 /**
  * Test that migration_downgrade() works.
  */
-static void test_migration_downgrade(void)
+START_TEST(test_migration_downgrade)
 {
-	db_query_called = 0;
-	map_file_returns = migration_down_works;
+	db_query_called       = 0;
+	map_file_returns      = migration_down_works;
 	map_file_returns_size = strlen(migration_down_works);
-	expected_query = migration_up_down_expected_query_down;
-	CU_ASSERT_EQUAL(0, migration_downgrade("test"));
-	CU_ASSERT_TRUE(db_query_called);
+	expected_query        = migration_up_down_expected_query_down;
+	ck_assert_int_eq(migration_downgrade("test"), 0);
+	ck_assert(db_query_called);
 }
+END_TEST
 
-static CU_TestInfo migration_tests[] = {
-	{
-		"migration_upgrade() - map_file() fails",
-		migration_upgrade_map_file_fails
-	},
-	{
-		"migration_upgrade() - up only",
-		migration_upgrade_up_only
-	},
-	{
-		"migration_upgrade() - down only",
-		migration_upgrade_down_only
-	},
-	{
-		"migration_upgrade() - no space before down",
-		migration_upgrade_no_space_before_down
-	},
-	{
-		"migration_upgrade() - works",
-		test_migration_upgrade
-	},
-	{
-		"migration_downgrade() - map_file() fails",
-		migration_downgrade_map_file_fails
-	},
-	{
-		"migration_downgrade() - up only",
-		migration_downgrade_up_only
-	},
-	{
-		"migration_downgrade() - down only",
-		migration_downgrade_down_only
-	},
-	{
-		"migration_downgrade() - no space before up",
-		migration_downgrade_no_space_before_up
-	},
-	{
-		"migration_downgrade() - works",
-		test_migration_downgrade
-	},
-
-	CU_TEST_INFO_NULL
-};
-
-void migration_add_suite(void)
+Suite *migration_suite(void)
 {
-	size_t i = 0;
-	CU_pSuite suite;
+	Suite *s;
+	TCase *t;
 
-	suite = CU_add_suite("Migration Handling", NULL, NULL);
-	while (migration_tests[i].pName) {
-		CU_add_test(suite, migration_tests[i].pName,
-		            migration_tests[i].pTestFunc);
-		i++;
-	}
+	s = suite_create("Migration Handling");
+	t = tcase_create("migration_upgrade");
+	tcase_add_test(t, migration_upgrade_map_file_fails);
+	tcase_add_test(t, migration_upgrade_up_only);
+	tcase_add_test(t, migration_upgrade_down_only);
+	tcase_add_test(t, migration_upgrade_no_space_before_down);
+	tcase_add_test(t, test_migration_upgrade);
+	tcase_set_timeout(t, 1);
+	suite_add_tcase(s, t);
+
+	t = tcase_create("migration_downgrade");
+	tcase_add_test(t, migration_downgrade_map_file_fails);
+	tcase_add_test(t, migration_downgrade_up_only);
+	tcase_add_test(t, migration_downgrade_down_only);
+	tcase_add_test(t, migration_downgrade_no_space_before_up);
+	tcase_add_test(t, test_migration_downgrade);
+	tcase_set_timeout(t, 1);
+	suite_add_tcase(s, t);
+
+	return s;
 }
 

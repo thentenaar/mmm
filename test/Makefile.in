@@ -8,24 +8,17 @@
 CC=@CC@
 GCOVR=@GCOVR@
 
-CPPFLAGS=@TEST_CPPFLAGS@ -DIN_TESTS
-LDFLAGS=@TEST_LDFLAGS@
-LIBS=@TEST_LIBS@
+CPPFLAGS=-DIN_TESTS @DEFS@ @CPPFLAGS@
+LDFLAGS=@LDFLAGS@
+LIBS=-lcheck
 CFLAGS=-g @CFLAGS@
-
-HAVE_CUNIT=@have_cunit@
+HAVE_CHECK=@have_check@
 
 # Gather the test sources
 SRCS := $(wildcard *.c)
 
 # Default flags for gcovr
 GCOVR_FLAGS = -d -r .. -e '^test/'
-
-# XXX: In CUnit suite structs, the test and suite names are _NOT_ const.
-CFLAGS := $(filter-out -Wwrite-strings,$(CFLAGS))
-
-# XXX: CUnit's ASSERT_PTR cast pointers to void *, discarding const.
-CFLAGS := $(filter-out -Wcast-qual, $(CFLAGS))
 
 # If COVERAGE is defined, generate a coverage report.
 ifneq ($(origin COVERAGE), undefined)
@@ -48,10 +41,10 @@ all: check
 clean:
 	@$(RM) test_runner
 
-ifeq (no,$(HAVE_CUNIT))
-test: ;$(warning CUnit must be installed to build the tests.)
+ifeq (no, $(HAVE_CHECK))
+check: ;$(warning check must be installed to build the tests.)
 else
-test: test_runner
+check: test_runner
 	@./test_runner
 
 test_runner: $(SRCS)
@@ -61,7 +54,7 @@ test_runner: $(SRCS)
 ifeq (,$(GCOVR))
 coverage: ;$(warning gcovr must be installed for coverage reports.)
 else
-coverage: test
+coverage: check
 	@echo
 	@$(GCOVR) $(GCOVR_FLAGS)
 ifneq ($(origin COVERALLS), undefined)
@@ -69,6 +62,6 @@ ifneq ($(origin COVERALLS), undefined)
 endif
 	@$(RM) -f *.gc[nd][oa]
 endif # GCOVR
-endif # HAVE_CUNIT
+endif # HAVE_CHECK
 
-.PHONY: all clean test coverage
+.PHONY: all clean check coverage

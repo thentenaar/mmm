@@ -9,7 +9,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <CUnit/CUnit.h>
+
+#include <check.h>
 #include "tests.h"
 
 /* from test_runner.c */
@@ -75,247 +76,236 @@ static struct dirent mig_des_range = {
 /**
  * Test that file_init() and file_uninit() work.
  */
-static void test_file_init_uninit(void)
+START_TEST(test_file_init_uninit)
 {
-	reset_stubs();
 	file_config();
-	CU_ASSERT_EQUAL(0, file_init());
-	CU_ASSERT_EQUAL(0, file_uninit());
+	ck_assert_int_eq(file_init(), 0);
+	ck_assert_int_eq(file_uninit(), 0);
 }
+END_TEST
 
 /**
  * Test that file_get_head() works.
  */
-static void test_file_get_head(void)
+START_TEST(test_file_get_head)
 {
-	local_head[0] = '\0';
-	CU_ASSERT_PTR_NOT_NULL(file_get_head());
-	CU_ASSERT_TRUE(file_get_head()[0] == '0');
+	*local_head = '\0';
+	ck_assert_ptr_nonnull(file_get_head());
+	ck_assert(*file_get_head() == '0');
 	memcpy(local_head, "1", 2);
-	CU_ASSERT_PTR_NOT_NULL(file_get_head());
+	ck_assert_ptr_nonnull(file_get_head());
 }
+END_TEST
 
 /**
  * Test that file_get_migration_path() works.
  */
-static void test_file_get_migration_path(void)
+START_TEST(test_file_get_migration_path)
 {
-	local_head[0] = '\0';
-	CU_ASSERT_EQUAL(file_get_migration_path(), config.migration_path);
+	*local_head = '\0';
+	ck_assert_ptr_eq(file_get_migration_path(), config.migration_path);
 }
+END_TEST
 
 /**
  * Test that file_find_migrations() returns NULL if
  * size is NULL.
  */
-static void file_find_migrations_null_size(void)
+START_TEST(file_find_migrations_null_size)
 {
-	reset_stubs();
-	CU_ASSERT_PTR_NULL(file_find_migrations("1", "2", NULL));
+	ck_assert_ptr_null(file_find_migrations("1", "2", NULL));
 }
+END_TEST
 
 /**
  * Test that file_find_migrations() returns NULL if no
  * migration_path was set.
  */
-static void file_find_migrations_no_migration_path(void)
+START_TEST(file_find_migrations_no_migration_path)
 {
 	size_t size = 9999;
 
-	reset_stubs();
-	config.migration_path[0] = '\0';
-	CU_ASSERT_PTR_NULL(file_find_migrations("1", NULL, &size));
-	CU_ASSERT_EQUAL(size, 0);
+	*config.migration_path = '\0';
+	ck_assert_ptr_null(file_find_migrations("1", NULL, &size));
+	ck_assert_uint_eq(size, 0);
 }
+END_TEST
 
 /**
  * Test that file_find_migrations() returns NULL if an
- * error occurs while scanning the migraiton_path.
+ * error occurs while scanning the migration_path.
  */
-static void file_find_migrations_handles_scan_errors(void)
+START_TEST(file_find_migrations_handles_scan_errors)
 {
-	size_t size = 9999;
+	size_t size;
 
-	/* opendir() returns NULL */
-	reset_stubs();
 	opendir_returns = NULL;
-	local_head[0] = '\0';
+	*local_head = '\0';
 	memcpy(config.migration_path, "/tmp", 5);
 
-	CU_ASSERT_PTR_NULL(file_find_migrations("1", NULL, &size));
-	CU_ASSERT_EQUAL(size, 0);
-	CU_ASSERT_EQUAL(local_head[0], '\0');
-	CU_ASSERT_TRUE(opendir_called);
-	CU_ASSERT_FALSE(closedir_called);
+	ck_assert_ptr_null(file_find_migrations("1", NULL, &size));
+	ck_assert_uint_eq(size, 0);
+	ck_assert(!*local_head);
+	ck_assert(opendir_called && !closedir_called);
 }
+END_TEST
 
 /**
  * Test that file_find_migrations() returns NULL if the
  * migration directory is empty.
  */
-static void file_find_migrations_empty_dir(void)
+START_TEST(file_find_migrations_empty_dir)
 {
-	size_t size = 9999;
+	size_t size;
 
-	reset_stubs();
 	opendir_returns = (DIR *)1234;
 	readdir_returns = NULL;
-	local_head[0] = '\0';
+	*local_head = '\0';
 	memcpy(config.migration_path, "/tmp", 5);
 
-	CU_ASSERT_PTR_NULL(file_find_migrations("1", NULL, &size));
-	CU_ASSERT_EQUAL(size, 0);
-	CU_ASSERT_NOT_EQUAL(local_head[0], '\0');
-	CU_ASSERT_STRING_EQUAL(local_head, "1");
-	CU_ASSERT_TRUE(opendir_called && readdir_called);
-	CU_ASSERT_TRUE(closedir_called);
+	ck_assert_ptr_null(file_find_migrations("1", NULL, &size));
+	ck_assert_uint_eq(size, 0);
+	ck_assert_str_eq(local_head, "1");
+	ck_assert(*local_head);
+	ck_assert(opendir_called && readdir_called && closedir_called);
 }
+END_TEST
 
 /**
  * Test that file_find_migrations() doesn't skip files when
  * current_head isn't valid.
  */
-static void file_find_migrations_invalid_current_head(void)
+START_TEST(file_find_migrations_invalid_current_head)
 {
 	char **m = NULL;
 	size_t size;
 
-	reset_stubs();
 	opendir_returns = (DIR *)1234;
 	readdir_returns = &mig_after_head;
 	stat_returns_buf.st_mode = S_IFREG;
 	memcpy(config.migration_path, "/tmp", 5);
 
-	m = file_find_migrations("xxx", NULL, &size);
-	CU_ASSERT_PTR_NOT_NULL_FATAL(m);
-	CU_ASSERT_EQUAL(size, 1);
-	CU_ASSERT_STRING_EQUAL(local_head, "100");
-	CU_ASSERT_TRUE(opendir_called && readdir_called);
-	CU_ASSERT_TRUE(closedir_called);
-	free(m[0]);
+	ck_assert_ptr_nonnull(m = file_find_migrations("xxx", NULL, &size));
+	ck_assert_uint_eq(size, 1);
+	ck_assert_str_eq(local_head, "100");
+	ck_assert(opendir_called && readdir_called && closedir_called);
+	if (m) free(m[0]);
 	free(m);
 }
+END_TEST
 
 /**
  * Test that file_find_migrations() skips files with empty
  * names.
  */
-static void file_find_migrations_empty_filename(void)
+START_TEST(file_find_migrations_empty_filename)
 {
 	size_t size;
 
-	reset_stubs();
 	opendir_returns = (DIR *)1234;
 	readdir_returns = &mig_empty_name;
 	memcpy(config.migration_path, "/tmp", 5);
 
-	CU_ASSERT_PTR_NULL(file_find_migrations("1", NULL, &size));
-	CU_ASSERT_EQUAL(size, 0);
-	CU_ASSERT_NOT_EQUAL(local_head[0], '\0');
-	CU_ASSERT_STRING_EQUAL(local_head, "1");
-	CU_ASSERT_TRUE(opendir_called && readdir_called);
-	CU_ASSERT_TRUE(closedir_called);
+	ck_assert_ptr_null(file_find_migrations("1", NULL, &size));
+	ck_assert_uint_eq(size, 0);
+	ck_assert_str_eq(local_head, "1");
+	ck_assert(opendir_called && readdir_called && closedir_called);
 }
+END_TEST
 
 /**
  * Test that file_find_migrations() skips files for which
  * stat() fails.
  */
-static void file_find_migrations_stat_fails(void)
+START_TEST(file_find_migrations_stat_fails)
 {
 	size_t size;
 
-	reset_stubs();
 	opendir_returns = (DIR *)1234;
 	readdir_returns = &mig_after_head;
 	stat_returns = -1;
 	stat_returns_buf.st_mode = S_IFREG;
 	memcpy(config.migration_path, "/tmp", 5);
 
-	CU_ASSERT_PTR_NULL(file_find_migrations("1", NULL, &size));
-	CU_ASSERT_EQUAL(size, 0);
-	CU_ASSERT_NOT_EQUAL(local_head[0], '\0');
-	CU_ASSERT_STRING_EQUAL(local_head, "1");
-	CU_ASSERT_TRUE(opendir_called && readdir_called);
-	CU_ASSERT_TRUE(closedir_called);
+	ck_assert_ptr_null(file_find_migrations("1", NULL, &size));
+	ck_assert_uint_eq(size, 0);
+	ck_assert_str_eq(local_head, "1");
+	ck_assert(opendir_called && readdir_called && closedir_called);
 }
+END_TEST
 
 /**
  * Test that file_find_migrations() skips files which
  * aren't regular files.
  */
-static void file_find_migrations_not_regular_file(void)
+START_TEST(file_find_migrations_not_regular_file)
 {
 	size_t size;
 
-	reset_stubs();
 	opendir_returns = (DIR *)1234;
 	readdir_returns = &mig_after_head;
 	stat_returns_buf.st_mode = S_IFDIR;
 	memcpy(config.migration_path, "/tmp", 5);
 
-	CU_ASSERT_PTR_NULL(file_find_migrations("1", NULL, &size));
-	CU_ASSERT_EQUAL(size, 0);
-	CU_ASSERT_NOT_EQUAL(local_head[0], '\0');
-	CU_ASSERT_STRING_EQUAL(local_head, "1");
-	CU_ASSERT_TRUE(opendir_called && readdir_called);
-	CU_ASSERT_TRUE(closedir_called);
+	ck_assert_ptr_null(file_find_migrations("1", NULL, &size));
+	ck_assert_uint_eq(size, 0);
+	ck_assert_str_eq(local_head, "1");
+	ck_assert(opendir_called && readdir_called && closedir_called);
 }
+END_TEST
 
 /**
  * Test that file_find_migrations() skips files with a
  * numeric designation that can't be represented as an
  * unsigned long.
  */
-static void file_find_migrations_designation_out_of_range(void)
+START_TEST(file_find_migrations_designation_out_of_range)
 {
 	size_t size;
 
-	reset_stubs();
 	opendir_returns = (DIR *)1234;
 	readdir_returns = &mig_des_range;
 	*errbuf = '\0';
 	memcpy(config.migration_path, "/tmp", 5);
 
-	CU_ASSERT_PTR_NULL(file_find_migrations("1", NULL, &size));
-	CU_ASSERT_EQUAL(size, 0);
-	CU_ASSERT_NOT_EQUAL(local_head[0], '\0');
-	CU_ASSERT_STRING_EQUAL(local_head, "1");
-	CU_ASSERT_TRUE(opendir_called && readdir_called);
-	CU_ASSERT_TRUE(closedir_called);
-	CU_ASSERT_STRING_EQUAL(errbuf, err_des_range);
+	ck_assert_ptr_null(file_find_migrations("1", NULL, &size));
+	ck_assert_uint_eq(size, 0);
+	ck_assert_str_eq(local_head, "1");
+	ck_assert(opendir_called && readdir_called && closedir_called);
+	ck_assert_str_eq(errbuf, err_des_range);
 }
+END_TEST
 
 /**
  * Test that file_find_migrations() works without a
  * previous revision.
  */
-static void file_find_migrations_no_prev_rev(void)
+START_TEST(file_find_migrations_no_prev_rev)
 {
 	char **m = NULL;
-	size_t size = 0;
+	size_t size;
 
-	reset_stubs();
 	opendir_returns = (void *)12345;
 	readdir_returns = &mig_name_too_small;
 	stat_returns_buf.st_mode = S_IFREG;
 	*errbuf = '\0';
+	memcpy(config.migration_path, "/tmp", 5);
 
-	m = file_find_migrations("2", NULL, &size);
-	CU_ASSERT_PTR_NOT_NULL_FATAL(m);
-	CU_ASSERT_EQUAL(1, size);
-	CU_ASSERT_STRING_EQUAL(local_head, "100");
-	CU_ASSERT_STRING_EQUAL(m[0], mig_after_head.d_name);
-	CU_ASSERT_STRING_EQUAL(errbuf, err_no_num);
-	while (size) free(m[--size]);
+	ck_assert_ptr_nonnull(m = file_find_migrations("2", NULL, &size));
+	ck_assert_uint_eq(size, 1);
+	ck_assert_str_eq(local_head, "100");
+	ck_assert_str_eq(errbuf, err_no_num);
+	if (m) ck_assert_str_eq(m[0], mig_after_head.d_name);
+	while (m && size) free(m[--size]);
 	free(m);
 }
+END_TEST
 
 /**
  * Test that file_find_migrations() works when the
  * previous revision is out of range.
  */
-static void file_find_migrations_prev_rev_out_of_range(void)
+START_TEST(file_find_migrations_prev_rev_out_of_range)
 {
 	char **m = NULL;
 	size_t size = 0;
@@ -325,117 +315,83 @@ static void file_find_migrations_prev_rev_out_of_range(void)
 	readdir_returns = &mig_name_too_small;
 	stat_returns_buf.st_mode = S_IFREG;
 	*errbuf = '\0';
+	memcpy(config.migration_path, "/tmp", 5);
 
-	m = file_find_migrations("2", "999999999999999999999999", &size);
-	CU_ASSERT_PTR_NOT_NULL_FATAL(m);
-	CU_ASSERT_EQUAL(1, size);
-	CU_ASSERT_STRING_EQUAL(local_head, "100");
-	CU_ASSERT_STRING_EQUAL(m[0], mig_after_head.d_name);
-	CU_ASSERT_STRING_EQUAL(errbuf, err_no_num);
-	while (size) free(m[--size]);
+	ck_assert_ptr_nonnull(m = file_find_migrations("2", "999999999999999999999999", &size));
+	ck_assert_uint_eq(size, 1);
+	ck_assert_str_eq(local_head, "100");
+	ck_assert_str_eq(errbuf, err_no_num);
+	if (m) ck_assert_str_eq(m[0], mig_after_head.d_name);
+	while (m && size) free(m[--size]);
 	free(m);
 }
+END_TEST
 
 /**
  * Test that file_find_migrations() works.
  */
-static void test_file_find_migrations(void)
+START_TEST(test_file_find_migrations)
 {
 	char **m = NULL;
 	size_t size = 0;
 
-	reset_stubs();
 	opendir_returns = (void *)12345;
 	readdir_returns = &mig_name_too_small;
 	stat_returns_buf.st_mode = S_IFREG;
 	*errbuf = '\0';
+	memcpy(config.migration_path, "/tmp", 5);
 
-	m = file_find_migrations("100", "2", &size);
-	CU_ASSERT_PTR_NOT_NULL_FATAL(m);
-	CU_ASSERT_EQUAL(1, size);
-	CU_ASSERT_STRING_EQUAL(local_head, "100");
-	CU_ASSERT_STRING_EQUAL(m[0], mig_after_head.d_name);
-	CU_ASSERT_STRING_EQUAL(errbuf, err_no_num);
-
-	while (size) free(m[--size]);
+	ck_assert_ptr_nonnull(m = file_find_migrations("100", "2", &size));
+	ck_assert_uint_eq(size, 1);
+	ck_assert_str_eq(local_head, "100");
+	ck_assert_str_eq(errbuf, err_no_num);
+	if (m) ck_assert_str_eq(m[0], mig_after_head.d_name);
+	while (m && size) free(m[--size]);
 	free(m);
 }
+END_TEST
 
-static CU_TestInfo source_file_tests[] = {
-	{
-		"file_init() / file_uninit() work",
-		test_file_init_uninit
-	},
-	{
-		"file_get_head() - works",
-		test_file_get_head
-	},
-	{
-		"file_get_migration_path() - works",
-		test_file_get_migration_path
-	},
-	{
-		"file_find_migrations() - NULL size",
-		file_find_migrations_null_size
-	},
-	{
-		"file_find_migrations() - no migration path",
-		file_find_migrations_no_migration_path
-	},
-	{
-		"file_find_migrations() - handles errors when scanning",
-		file_find_migrations_handles_scan_errors
-	},
-	{
-		"file_find_migrations() - scans empty dir",
-		file_find_migrations_empty_dir
-	},
-	{
-		"file_find_migrations() - invalid current_head",
-		file_find_migrations_invalid_current_head
-	},
-	{
-		"file_find_migrations() - file with empty name",
-		file_find_migrations_empty_filename
-	},
-	{
-		"file_find_migrations() - stat() fails",
-		file_find_migrations_stat_fails
-	},
-	{
-		"file_find_migrations() - not regular file",
-		file_find_migrations_not_regular_file
-	},
-	{
-		"file_find_migrations() - designation out of range",
-		file_find_migrations_designation_out_of_range
-	},
-	{
-		"file_find_migrations() - no previous revision",
-		file_find_migrations_no_prev_rev
-	},
-	{
-		"file_find_migrations() - prevous revision out of range",
-		file_find_migrations_prev_rev_out_of_range
-	},
-	{
-		"file_find_migrations() - works",
-		test_file_find_migrations
-	},
-
-	CU_TEST_INFO_NULL
-};
-
-void source_file_add_suite(void)
+Suite *source_file_suite(void)
 {
-	size_t i = 0;
-	CU_pSuite suite;
+	Suite *s;
+	TCase *t;
 
-	suite = CU_add_suite("Migration Source: File", NULL, NULL);
-	while (source_file_tests[i].pName) {
-		CU_add_test(suite, source_file_tests[i].pName,
-		            source_file_tests[i].pTestFunc);
-		i++;
-	}
+	s = suite_create("Migration Source: File");
+	t = tcase_create("file_init");
+	tcase_add_checked_fixture(t, reset_stubs, NULL);
+	tcase_add_test(t, test_file_init_uninit);
+	tcase_set_timeout(t, 1);
+	suite_add_tcase(s, t);
+
+	t = tcase_create("file_get_head");
+	tcase_add_checked_fixture(t, reset_stubs, NULL);
+	tcase_add_test(t, test_file_get_head);
+	tcase_set_timeout(t, 1);
+	suite_add_tcase(s, t);
+
+	t = tcase_create("file_get_migration_path");
+	tcase_add_checked_fixture(t, reset_stubs, NULL);
+	tcase_add_test(t, test_file_get_migration_path);
+	tcase_set_timeout(t, 1);
+	suite_add_tcase(s, t);
+
+	t = tcase_create("file_find_migrations");
+	tcase_add_checked_fixture(t, reset_stubs, NULL);
+	tcase_add_test(t, file_find_migrations_null_size);
+	tcase_add_test(t, file_find_migrations_no_migration_path);
+	tcase_add_test(t, file_find_migrations_handles_scan_errors);
+	tcase_add_test(t, file_find_migrations_empty_dir);
+	tcase_add_test(t, file_find_migrations_invalid_current_head);
+	tcase_add_test(t, file_find_migrations_empty_filename);
+	tcase_add_test(t, file_find_migrations_stat_fails);
+	tcase_add_test(t, file_find_migrations_not_regular_file);
+	tcase_add_test(t, file_find_migrations_designation_out_of_range);
+	tcase_add_test(t, file_find_migrations_no_prev_rev);
+	tcase_add_test(t, file_find_migrations_prev_rev_out_of_range);
+	tcase_add_test(t, test_file_find_migrations);
+	tcase_set_timeout(t, 1);
+	suite_add_tcase(s, t);
+
+	return s;
 }
 

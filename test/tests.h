@@ -8,33 +8,27 @@
 #ifndef TESTS_H
 #define TESTS_H
 
+#include <check.h>
+
 #ifndef IN_TESTS
 #define IN_TESTS
 #endif
 
-/* {{{ GCC: UNUSED() macro */
-#if defined(__GNUC__) || defined(__clang__)
-#define UNUSED(x) x __attribute__((__unused__))
-#else
-#define UNUSED(x) x
-#endif /* }}} */
-
-/* Suite adding functions */
-void config_add_suite(void);
-void db_add_suite(void);
-void source_add_suite(void);
-void config_gen_add_suite(void);
-void file_add_suite(void);
-void utils_add_suite(void);
-void stringbuf_add_suite(void);
-void state_add_suite(void);
-void source_file_add_suite(void);
-void source_git_add_suite(void);
-void db_sqlite3_add_suite(void);
-void db_pgsql_add_suite(void);
-void db_mysql_add_suite(void);
-void migration_add_suite(void);
-void commands_add_suite(void);
+Suite *config_suite(void);
+Suite *db_suite(void);
+Suite *source_suite(void);
+Suite *config_gen_suite(void);
+Suite *file_suite(void);
+Suite *utils_suite(void);
+Suite *stringbuf_suite(void);
+Suite *state_suite(void);
+Suite *source_file_suite(void);
+Suite *source_git_suite(void);
+Suite *db_sqlite3_suite(void);
+Suite *db_pgsql_suite(void);
+Suite *db_mysql_suite(void);
+Suite *migration_suite(void);
+Suite *commands_suite(void);
 
 #endif /* TESTS_H */
 

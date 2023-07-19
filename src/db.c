@@ -99,12 +99,12 @@ config_callback_t db_get_config_cb(const char *driver, size_t len)
 /**
  * Connect to a database.
  *
- * \param[in] driver_type Engine type to connect with.
- * \param[in] host        Hostname to connect to.
- * \param[in] port        Port to connect to.
- * \param[in] username    Username to authenticate with.
- * \param[in] password    Password to authenticate with.
- * \param[in] db          Database to connect to.
+ * \param[in] driver   Engine type to connect with.
+ * \param[in] host     Hostname to connect to.
+ * \param[in] port     Port to connect to.
+ * \param[in] username Username to authenticate with.
+ * \param[in] password Password to authenticate with.
+ * \param[in] db       Database to connect to.
  * \return 0 if successful, non-zero on error.
  */
 int db_connect(const char *driver, const char *host,
@@ -123,15 +123,11 @@ int db_connect(const char *driver, const char *host,
 	}
 
 	/* Find the driver */
-	i = strlen(driver);
-	if (!i) goto ret;
-
-	i = find_driver(driver, strlen(driver));
-	if (i == SIZE_MAX) goto ret;
+	if ((i = find_driver(driver, strlen(driver))) == SIZE_MAX)
+		goto ret;
 
 	/* Do the connection */
-	session.dbh = drivers[i]->connect(host, port, username,
-	                                  password, db);
+	session.dbh = drivers[i]->connect(host, port, username, password, db);
 	if (session.dbh) {
 		session.type = i;
 		retval = 0;

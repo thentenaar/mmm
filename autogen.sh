@@ -1,2 +1,2 @@
 #!/bin/bash
-autoconf && ./configure $@
+autoconf -i && ./configure $@

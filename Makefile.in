@@ -90,8 +90,8 @@ distclean: clean
 	@$(RM) Makefile test/Makefile config.status config.log
 	@$(RM) -r autom4te.cache
 
-test:
-	@$(MAKE) -C test test
+check:
+	@$(MAKE) -C test check
 
 coverage:
 	@COVERAGE=1 $(MAKE) -C test coverage
@@ -109,5 +109,5 @@ endif
 	@$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
 
 .SUFFIXES: .c .o
-.PHONY: all install uninstall clean test coverage indent
+.PHONY: all install uninstall clean check coverage indent
 
