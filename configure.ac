@@ -39,12 +39,15 @@ AC_TYPE_SIZE_T
 dnl Check for check
 AX_SET_PREFIX
 AX_CHECK_DEP([check], [check.h], [check], [srunner_run_all], [nonfatal])
+AS_IF([test "x$have_check" != "xyes"],[
+	AX_CHECK_DEP([check], [check.h], [check], [suite_create], [nonfatal], [-lsubunit -lm])
+])
 LIBS=
 
 dnl Check for Databases
 AX_CHECK_DEP([sqlite3], [sqlite3.h], [sqlite3], [sqlite3_open], [nonfatal])
-AX_CHECK_DEP([pgsql], [libpq-fe.h], [pq], [PQconnectdb], [nonfatal])
-AX_CHECK_DEP([mysql], [mysql.h], [mysql], [mysql_library_init], [nonfatal])
+AX_CHECK_DEP([pgsql], [postgresql/libpq-fe.h], [pq], [PQconnectdb], [nonfatal])
+AX_CHECK_DEP([mysql], [mysql/mysql.h], [mysqlclient], [mysql_server_init], [nonfatal])
 
 dnl Ensure at least one supported database is available
 AS_IF([test "$have_sqlite3" != "yes"], [

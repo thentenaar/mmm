@@ -1,10 +1,10 @@
 Makefile
-test/Makefile
-test/test_runner
+test_runner
 config.log
 config.status
 autom4te.cache
 configure~
 *.o
 *.sw?
+*.gc[nd][oa]
 mmm

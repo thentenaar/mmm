@@ -1,0 +1,35 @@
+name: CI
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+jobs:
+  build:
+    if: github.repository == 'thentenaar/mmm'
+    strategy:
+      matrix:
+        CC: [gcc, clang]
+    env:
+      CC: ${{ matrix.CC }}
+    runs-on: ubuntu-latest
+    name: linux-${{ matrix.CC }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install deps
+        run: |
+          sudo apt install libpq-dev libmysqlclient-dev libsqlite3-dev libgit2-dev check gcovr llvm
+      - name: Build
+        run: |
+          ./configure
+          make coveralls
+      - uses: coverallsapp/github-action@v2
+        if: matrix.CC == 'gcc'
+        with:
+          format: coveralls
+          file: ${{ github.workspace }}/test/coveralls.json
+          compare-ref: master
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+

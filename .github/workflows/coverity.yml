@@ -1,0 +1,22 @@
+name: Coverity
+on:
+  push:
+    branches:
+      - covscan
+jobs:
+  coverity:
+    if: github.repository == 'thentenaar/mmm'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Pre-build
+        run: |
+          sudo apt install libpq-dev libmysqlclient-dev libsqlite3-dev libgit2-dev
+          ./configure
+      - uses: vapier/coverity-scan-action@v1
+        with:
+          project: thentenaar/mmm
+          email: ${{ secrets.COVERITY_SCAN_EMAIL }}
+          token: ${{ secrets.COVERITY_SCAN_TOKEN }}
+          command: make
+

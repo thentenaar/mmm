@@ -94,7 +94,10 @@ check:
 	@$(MAKE) -C test check
 
 coverage:
-	@COVERAGE=1 $(MAKE) -C test coverage
+	@COVERAGE=1 $(MAKE) -C test clean coverage
+
+coveralls:
+	@COVERAGE=1 $(MAKE) -C test clean coveralls
 
 indent:
 ifneq (,$(INDENT))
@@ -109,5 +112,5 @@ endif
 	@$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
 
 .SUFFIXES: .c .o
-.PHONY: all install uninstall clean check coverage indent
+.PHONY: all install uninstall clean check coverage coveralls indent
 

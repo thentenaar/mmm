@@ -10,7 +10,7 @@
 #include <string.h>
 
 #ifndef IN_TESTS
-#include <libpq-fe.h>
+#include <postgresql/libpq-fe.h>
 #endif
 
 #include "driver.h"
