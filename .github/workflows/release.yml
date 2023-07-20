@@ -1,0 +1,19 @@
+name: Release
+on:
+  push:
+    tags:
+      - v*
+permissions:
+  contents: write
+jobs:
+  tarball:
+    if: github.repository == 'thentenaar/mmm'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Source Tarball
+        run: tar -H posix --exclude-vcs-ignores --exclude=.\* -cf- mmm | xz -9 > mmm.tar.xz
+      - uses: softprops/action-gh-release@v1
+        with:
+          files: mmm.tar.xz
+

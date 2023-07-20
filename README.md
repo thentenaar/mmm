@@ -1,8 +1,8 @@
 Minimal Migration Manager
 =========================
 
-[![Travis CI Status](https://secure.travis-ci.org/thentenaar/mmm.svg?branch=master)](https://travis-ci.org/thentenaar/mmm)
-[![Coverage Status](https://coveralls.io/repos/thentenaar/mmm/badge.svg?branch=master)](https://coveralls.io/r/thentenaar/mmm)
+[![CI Status](https://github.com/thentenaar/mmm/workflows/CI/badge.svg)](https://github.com/thentenaar/mmm/actions)
+[![Coverage Status](https://coveralls.io/repos/github/thentenaar/mmm/badge.svg?branch=master)](https://coveralls.io/github/thentenaar/mmm?branch=master)
 [![Coverity Status](https://scan.coverity.com/projects/5663/badge.svg)](https://scan.coverity.com/projects/5663)
 
 Synopsis

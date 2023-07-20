@@ -7,30 +7,20 @@
 #
 CC=@CC@
 GCOVR=@GCOVR@
+GCOVR_FLAGS=-r .. -e '^test/' --gcov-executable "@ax_cc_gcov_command@"
 
-CPPFLAGS=-DIN_TESTS @DEFS@ @CPPFLAGS@
+CPPFLAGS=-DIN_TESTS @CPPFLAGS@
+CFLAGS=@CFLAGS@
 LDFLAGS=@LDFLAGS@
-LIBS=-lcheck
-CFLAGS=-g @CFLAGS@
+LIBS=@LIBS_check@
 HAVE_CHECK=@have_check@
 
 # Gather the test sources
 SRCS := $(wildcard *.c)
 
-# Default flags for gcovr
-GCOVR_FLAGS = -d -r .. -e '^test/'
-
-# If COVERAGE is defined, generate a coverage report.
-ifneq ($(origin COVERAGE), undefined)
-ifneq (,$(GCOVR))
-  CFLAGS := -O0 -coverage $(filter-out -O2,$(CFLAGS))
-
-# Don't remove gcov files when using coveralls
-ifneq ($(origin COVERALLS), undefined)
-  GCOVR_FLAGS := $(filter-out -d,$(GCOVR_FLAGS))
-endif # COVERALLS
-endif # GCOVR
-endif # COVERAGE
+ifneq (,$(COVERAGE))
+CFLAGS:=-g -O0 -fprofile-arcs -ftest-coverage $(filter-out -O2,@CFLAGS@)
+endif
 
 #
 # Targets
@@ -39,7 +29,7 @@ endif # COVERAGE
 all: check
 
 clean:
-	@$(RM) test_runner
+	@$(RM) test_runner *.gc[nd][oa] coveralls.json
 
 ifeq (no, $(HAVE_CHECK))
 check: ;$(warning check must be installed to build the tests.)
@@ -53,15 +43,17 @@ test_runner: $(SRCS)
 
 ifeq (,$(GCOVR))
 coverage: ;$(warning gcovr must be installed for coverage reports.)
+coveralls: ;$(warning gcovr must be installed for coverage reports.)
 else
 coverage: check
 	@echo
 	@$(GCOVR) $(GCOVR_FLAGS)
-ifneq ($(origin COVERALLS), undefined)
-	@coveralls -r .. --gcov-options '\-lp'
-endif
-	@$(RM) -f *.gc[nd][oa]
+
+coveralls: check
+	@echo
+	@$(GCOVR) $(GCOVR_FLAGS) -s --coveralls coveralls.json
 endif # GCOVR
 endif # HAVE_CHECK
 
-.PHONY: all clean check coverage
+.PHONY: all clean check coverage coveralls
+

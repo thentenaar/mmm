@@ -10,6 +10,8 @@
 #include <string.h>
 
 #ifndef IN_TESTS
+/* The newer mysql headers aren't ANSI-friendly :/ */
+#define inline
 #include <mysql/mysql.h>
 #endif
 
@@ -20,7 +22,7 @@
  * Constant representing a value of 'TRUE' for
  * MySQL options.
  */
-static const my_bool tr = 1;
+static const int tr = 1;
 
 /**
  * Initialize the mysql library.

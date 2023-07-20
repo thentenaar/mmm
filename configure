@@ -650,13 +650,19 @@ ac_includes_default="\
 ac_header_c_list=
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
+ax_cc_gcov_command
 INDENT
 GCOVR
 have_libgit2
+LIBS_libgit2
 have_mysql
+LIBS_mysql
 have_pgsql
+LIBS_pgsql
 have_sqlite3
+LIBS_sqlite3
 have_check
+LIBS_check
 INSTALL_DATA
 INSTALL_SCRIPT
 INSTALL_PROGRAM
@@ -4346,6 +4352,7 @@ fi
 
 else $as_nop
 
+			LIBS_check="$LIBS"
 			if test "x$with_check" != "x$prefix"
 then :
 
@@ -4369,6 +4376,160 @@ fi
 
 
 
+
+if test "x$have_check" != "xyes"
+then :
+
+
+
+	have_check=no
+
+# Check whether --with-check was given.
+if test ${with_check+y}
+then :
+  withval=$with_check; with_check=$withval
+else $as_nop
+  with_check=yes
+
+fi
+
+
+	if test "$with_check" != "no"
+then :
+
+		have_check=yes
+		save_cppflags=$CPPFLAGS
+		save_ldflags=$LDFLAGS
+		save_libs=$LIBS
+
+				if test "$with_check" == "yes"
+then :
+  with_check=$prefix
+fi
+		if test "$with_check" != "$prefix"
+then :
+
+			CPPFLAGS="$CPPFLAGS -I$with_check/include"
+
+fi
+		ac_fn_c_check_header_compile "$LINENO" "check.h" "ac_cv_header_check_h" "$ac_includes_default"
+if test "x$ac_cv_header_check_h" = xyes
+then :
+
+else $as_nop
+  have_check=no
+fi
+
+
+				if test "$have_check" != "no"
+then :
+
+			if test "$with_check" != "$prefix"
+then :
+
+				LDFLAGS="$LDFLAGS -L$with_check/lib"
+
+fi
+			{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for suite_create in -lcheck" >&5
+printf %s "checking for suite_create in -lcheck... " >&6; }
+if test ${ac_cv_lib_check_suite_create+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lcheck -lsubunit -lm $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.
+   The 'extern "C"' is for builds by C++ compilers;
+   although this is not generally supported in C code supporting it here
+   has little cost and some practical benefit (sr 110532).  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char suite_create (void);
+int
+main (void)
+{
+return suite_create ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  ac_cv_lib_check_suite_create=yes
+else $as_nop
+  ac_cv_lib_check_suite_create=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_check_suite_create" >&5
+printf "%s\n" "$ac_cv_lib_check_suite_create" >&6; }
+if test "x$ac_cv_lib_check_suite_create" = xyes
+then :
+  printf "%s\n" "#define HAVE_LIBCHECK 1" >>confdefs.h
+
+  LIBS="-lcheck $LIBS"
+
+else $as_nop
+  have_check=no
+fi
+
+
+fi
+
+		if test "$have_check" == "no"
+then :
+
+			CPPFLAGS=$save_cppflags
+			LDFLAGS=$save_ldflags
+			LIBS=$save_libs
+			if test "xnonfatal" != "x"
+then :
+
+else $as_nop
+  { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+printf "%s\n" "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "check not found.
+See \`config.log' for more details" "$LINENO" 5; }
+
+fi
+
+else $as_nop
+
+			LIBS_check="$LIBS-lsubunit -lm"
+			if test "x$with_check" != "x$prefix"
+then :
+
+				if test "x$RPATHS" != "x"
+then :
+
+					RPATH="$RPATH:$with_check/lib"
+
+else $as_nop
+
+					RPATH="$with_check/lib"
+
+fi
+
+fi
+
+fi
+
+fi
+
+
+
+
+
+
+fi
 LIBS=
 
 
@@ -4494,6 +4655,7 @@ fi
 
 else $as_nop
 
+			LIBS_sqlite3="$LIBS"
 			if test "x$with_sqlite3" != "x$prefix"
 then :
 
@@ -4513,6 +4675,7 @@ fi
 fi
 
 fi
+
 
 
 
@@ -4549,8 +4712,8 @@ then :
 			CPPFLAGS="$CPPFLAGS -I$with_pgsql/include"
 
 fi
-		ac_fn_c_check_header_compile "$LINENO" "libpq-fe.h" "ac_cv_header_libpq_fe_h" "$ac_includes_default"
-if test "x$ac_cv_header_libpq_fe_h" = xyes
+		ac_fn_c_check_header_compile "$LINENO" "postgresql/libpq-fe.h" "ac_cv_header_postgresql_libpq_fe_h" "$ac_includes_default"
+if test "x$ac_cv_header_postgresql_libpq_fe_h" = xyes
 then :
 
 else $as_nop
@@ -4640,6 +4803,7 @@ fi
 
 else $as_nop
 
+			LIBS_pgsql="$LIBS"
 			if test "x$with_pgsql" != "x$prefix"
 then :
 
@@ -4659,6 +4823,7 @@ fi
 fi
 
 fi
+
 
 
 
@@ -4695,8 +4860,8 @@ then :
 			CPPFLAGS="$CPPFLAGS -I$with_mysql/include"
 
 fi
-		ac_fn_c_check_header_compile "$LINENO" "mysql.h" "ac_cv_header_mysql_h" "$ac_includes_default"
-if test "x$ac_cv_header_mysql_h" = xyes
+		ac_fn_c_check_header_compile "$LINENO" "mysql/mysql.h" "ac_cv_header_mysql_mysql_h" "$ac_includes_default"
+if test "x$ac_cv_header_mysql_mysql_h" = xyes
 then :
 
 else $as_nop
@@ -4713,14 +4878,14 @@ then :
 				LDFLAGS="$LDFLAGS -L$with_mysql/lib"
 
 fi
-			{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for mysql_library_init in -lmysql" >&5
-printf %s "checking for mysql_library_init in -lmysql... " >&6; }
-if test ${ac_cv_lib_mysql_mysql_library_init+y}
+			{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for mysql_server_init in -lmysqlclient" >&5
+printf %s "checking for mysql_server_init in -lmysqlclient... " >&6; }
+if test ${ac_cv_lib_mysqlclient_mysql_server_init+y}
 then :
   printf %s "(cached) " >&6
 else $as_nop
   ac_check_lib_save_LIBS=$LIBS
-LIBS="-lmysql  $LIBS"
+LIBS="-lmysqlclient  $LIBS"
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -4733,32 +4898,32 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 #ifdef __cplusplus
 extern "C"
 #endif
-char mysql_library_init (void);
+char mysql_server_init (void);
 int
 main (void)
 {
-return mysql_library_init ();
+return mysql_server_init ();
   ;
   return 0;
 }
 _ACEOF
 if ac_fn_c_try_link "$LINENO"
 then :
-  ac_cv_lib_mysql_mysql_library_init=yes
+  ac_cv_lib_mysqlclient_mysql_server_init=yes
 else $as_nop
-  ac_cv_lib_mysql_mysql_library_init=no
+  ac_cv_lib_mysqlclient_mysql_server_init=no
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.beam \
     conftest$ac_exeext conftest.$ac_ext
 LIBS=$ac_check_lib_save_LIBS
 fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_mysql_mysql_library_init" >&5
-printf "%s\n" "$ac_cv_lib_mysql_mysql_library_init" >&6; }
-if test "x$ac_cv_lib_mysql_mysql_library_init" = xyes
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_mysqlclient_mysql_server_init" >&5
+printf "%s\n" "$ac_cv_lib_mysqlclient_mysql_server_init" >&6; }
+if test "x$ac_cv_lib_mysqlclient_mysql_server_init" = xyes
 then :
-  printf "%s\n" "#define HAVE_LIBMYSQL 1" >>confdefs.h
+  printf "%s\n" "#define HAVE_LIBMYSQLCLIENT 1" >>confdefs.h
 
-  LIBS="-lmysql $LIBS"
+  LIBS="-lmysqlclient $LIBS"
 
 else $as_nop
   have_mysql=no
@@ -4786,6 +4951,7 @@ fi
 
 else $as_nop
 
+			LIBS_mysql="$LIBS"
 			if test "x$with_mysql" != "x$prefix"
 then :
 
@@ -4805,6 +4971,7 @@ fi
 fi
 
 fi
+
 
 
 
@@ -4950,6 +5117,7 @@ fi
 
 else $as_nop
 
+			LIBS_libgit2="$LIBS"
 			if test "x$with_libgit2" != "x$prefix"
 then :
 
@@ -4969,6 +5137,7 @@ fi
 fi
 
 fi
+
 
 
 
@@ -5120,6 +5289,7 @@ fi
 	if test "$ax_cc_clang" == "yes"
 then :
 
+		ax_cc_gcov_command="llvm-cov gcov"
 
 
 
@@ -5191,6 +5361,7 @@ done
 
 
 else $as_nop
+  			ax_cc_gcov_command="gcov"
 
 
 
@@ -5402,6 +5573,7 @@ done
 
 
 fi
+
 
 	ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
